@@ -1,0 +1,20 @@
+version: '3'
+services: 
+  db:
+    image: postgres:11
+    container_name: pg_auction
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: auction
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: root
+  adminer:
+    image: adminer
+    container_name: adminer_pg_auction
+    restart: always
+    ports:
+      - 8080:8080
+volumes:
+  db:
