@@ -1,4 +1,4 @@
-export enum ArrivalType { 
+export enum ArrivalType {
   ROYAL_MAIL = 'ROYAL_MAIL',
   UNITED_STATES_POSTAL_SERVICE = 'UNITED_STATES_POSTAL_SERVICE',
   DHL_EXPRESS = 'DHL_EXPRESS',

@@ -4,6 +4,6 @@ import { LotsController } from './lots.controller';
 
 @Module({
   providers: [LotsService],
-  controllers: [LotsController]
+  controllers: [LotsController],
 })
 export class LotsModule {}

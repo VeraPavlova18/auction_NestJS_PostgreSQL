@@ -1,10 +1,17 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { LotStatus } from './lot-status.enum';
 import { User } from 'src/auth/user.entity';
 import { Bid } from 'src/bids/bid.entity';
 
 @Entity()
-export class Lot extends BaseEntity{
+export class Lot extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -35,10 +42,18 @@ export class Lot extends BaseEntity{
   @Column()
   status: LotStatus;
 
-  @ManyToOne(type => User, user => user.lots, { eager: false })
+  @ManyToOne(
+    type => User,
+    user => user.lots,
+    { eager: false },
+  )
   user: User;
 
-  @OneToMany(type => Bid, bid => bid.lot, { eager: true })
+  @OneToMany(
+    type => Bid,
+    bid => bid.lot,
+    { eager: true },
+  )
   bids: Bid[];
 
   @Column()

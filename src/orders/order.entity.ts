@@ -1,23 +1,33 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+} from 'typeorm';
 import { OrderStatus } from './order-status.enum';
 import { ArrivalType } from './arrival-type.enum';
 import { Bid } from 'src/bids/bid.entity';
 
 @Entity()
-export class Order extends BaseEntity{
+export class Order extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  arrivalLocation: string;  
+  arrivalLocation: string;
 
   @Column()
-  arrivalType: ArrivalType;    
+  arrivalType: ArrivalType;
 
   @Column()
-  status: OrderStatus;  
+  status: OrderStatus;
 
-  @ManyToOne(type => Bid, bid => bid.orders, { eager: false })
+  @ManyToOne(
+    type => Bid,
+    bid => bid.orders,
+    { eager: false },
+  )
   bid: Bid;
 
   @Column()

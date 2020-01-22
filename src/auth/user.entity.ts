@@ -1,15 +1,15 @@
-import { 
+import {
   Entity,
   PrimaryGeneratedColumn,
-  BaseEntity, 
+  BaseEntity,
   Column,
   Unique,
-  OneToMany
-} from "typeorm";
-import { Lot } from "../lots/lot.entity";
-import { Bid } from "src/bids/bid.entity";
+  OneToMany,
+} from 'typeorm';
+import { Lot } from '../lots/lot.entity';
+import { Bid } from 'src/bids/bid.entity';
 
-@Entity() 
+@Entity()
 @Unique(['email'])
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
@@ -33,10 +33,17 @@ export class User extends BaseEntity {
   @Column()
   password: string;
 
-  @OneToMany(type => Lot, lot => lot.user, { eager: true })
+  @OneToMany(
+    type => Lot,
+    lot => lot.user,
+    { eager: true },
+  )
   lots: Lot[];
 
-  @OneToMany(type => Bid, bid => bid.user, { eager: true })
+  @OneToMany(
+    type => Bid,
+    bid => bid.user,
+    { eager: true },
+  )
   bids: Bid[];
- 
 }
