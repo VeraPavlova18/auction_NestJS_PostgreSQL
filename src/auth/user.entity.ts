@@ -6,6 +6,7 @@ import {
   Unique,
   OneToMany,
 } from 'typeorm';
+import { Transform } from 'class-transformer';
 import { Lot } from '../lots/lot.entity';
 import { Bid } from 'src/bids/bid.entity';
 
@@ -28,7 +29,7 @@ export class User extends BaseEntity {
   phone: string;
 
   @Column()
-  birthday: string;
+  birthday: Date;
 
   @Column()
   password: string;
@@ -46,4 +47,5 @@ export class User extends BaseEntity {
     { eager: true },
   )
   bids: Bid[];
+  user: any;
 }
