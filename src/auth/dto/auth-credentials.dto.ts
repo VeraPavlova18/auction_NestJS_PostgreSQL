@@ -1,10 +1,20 @@
 import * as moment from 'moment';
-import {Moment} from 'moment';
-import { IsString, MinLength, MaxLength, Matches, IsNotEmpty, IsEmail, IsPhoneNumber, IsDate, MinDate, MaxDate } from 'class-validator';
+import { Moment } from 'moment';
+import {
+  IsString,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsNotEmpty,
+  IsEmail,
+  IsPhoneNumber,
+  IsDate,
+  MinDate,
+  MaxDate,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
 export class AuthCredentialsDto {
-
   @IsNotEmpty()
   @IsString()
   @MinLength(2)
@@ -31,7 +41,11 @@ export class AuthCredentialsDto {
 
   @IsNotEmpty()
   @IsDate()
-  @MaxDate(moment().subtract(21, 'years').toDate())
+  @MaxDate(
+    moment()
+      .subtract(21, 'years')
+      .toDate(),
+  )
   @Type(() => Date)
   birthday: Date;
 
@@ -40,8 +54,8 @@ export class AuthCredentialsDto {
   @MinLength(8)
   @MaxLength(20)
   @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: 'Passport must be from 8 to 20 symbol length and matches at min: one symbol A-Z, one a-z and number or characters _, -',
+    message:
+      'Passport must be from 8 to 20 symbol length and matches at min: one symbol A-Z, one a-z and number or characters _, -',
   })
   password: string;
-
 }
