@@ -11,9 +11,6 @@ import { SignInCredentialsDto } from './dto/signIn-credential.dto';
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
 
-  private async hashPassword(password: string, salt: string): Promise<string> {
-    return bcrypt.hash(password, salt);
-  }
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     const {
       firstName,
@@ -37,21 +34,27 @@ export class UserRepository extends Repository<User> {
       await user.save();
     } catch (error) {
       if (error.code === '23505') {
-        throw new ConflictException('Email already exists');
+        throw new ConflictException(error.detail);
       } else {
         throw new InternalServerErrorException();
       }
     }
   }
 
-  async validateUserPassword(signInCredentialsDto: SignInCredentialsDto): Promise<string> {
+  async validateUserPassword(
+    signInCredentialsDto: SignInCredentialsDto,
+  ): Promise<string> {
     const { email, password } = signInCredentialsDto;
     const user = await this.findOne({ email });
 
-    if (user && await user.validatePassword(password)) {
+    if (user && (await user.validatePassword(password))) {
       return user.email;
     } else {
       return null;
     }
+  }
+
+  private async hashPassword(password: string, salt: string): Promise<string> {
+    return bcrypt.hash(password, salt);
   }
 }

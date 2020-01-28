@@ -6,9 +6,9 @@ import {
   Unique,
   OneToMany,
 } from 'typeorm';
-import { Lot } from '../lots/lot.entity';
-import { Bid } from 'src/bids/bid.entity';
 import * as bcript from 'bcrypt';
+import { Lot } from '../lots/lot.entity';
+import { Bid } from '../bids/bid.entity';
 
 @Entity()
 @Unique(['phone'])
@@ -51,7 +51,6 @@ export class User extends BaseEntity {
     { eager: true },
   )
   bids: Bid[];
-  user: any;
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcript.hash(password, this.salt);

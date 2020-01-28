@@ -1,5 +1,4 @@
 import * as moment from 'moment';
-import { Moment } from 'moment';
 import {
   IsString,
   MinLength,
@@ -7,12 +6,10 @@ import {
   Matches,
   IsNotEmpty,
   IsEmail,
-  IsPhoneNumber,
   IsDate,
-  MinDate,
   MaxDate,
 } from 'class-validator';
-import { Type, Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 export class AuthCredentialsDto {
   @IsNotEmpty()

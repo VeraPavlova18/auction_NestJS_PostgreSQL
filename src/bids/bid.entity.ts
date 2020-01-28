@@ -6,9 +6,9 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm';
-import { User } from 'src/auth/user.entity';
-import { Lot } from 'src/lots/lot.entity';
-import { Order } from 'src/orders/order.entity';
+import { User } from '../auth/user.entity';
+import { Lot } from '../lots/lot.entity';
+import { Order } from '../orders/order.entity';
 
 @Entity()
 export class Bid extends BaseEntity {

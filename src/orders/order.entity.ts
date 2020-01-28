@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { OrderStatus } from './order-status.enum';
 import { ArrivalType } from './arrival-type.enum';
-import { Bid } from 'src/bids/bid.entity';
+import { Bid } from '../bids/bid.entity';
 
 @Entity()
 export class Order extends BaseEntity {

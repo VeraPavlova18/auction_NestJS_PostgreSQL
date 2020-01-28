@@ -8,7 +8,6 @@ import {
 } from 'class-validator';
 
 export class SignInCredentialsDto {
-
   @IsNotEmpty()
   @MinLength(10)
   @MaxLength(60)

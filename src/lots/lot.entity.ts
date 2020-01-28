@@ -7,8 +7,8 @@ import {
   OneToMany,
 } from 'typeorm';
 import { LotStatus } from './lot-status.enum';
-import { User } from 'src/auth/user.entity';
-import { Bid } from 'src/bids/bid.entity';
+import { User } from '../auth/user.entity';
+import { Bid } from '../bids/bid.entity';
 
 @Entity()
 export class Lot extends BaseEntity {
@@ -25,13 +25,13 @@ export class Lot extends BaseEntity {
   image: string;
 
   @Column()
-  createdAt: string;
+  createdAt: Date;
 
   @Column()
-  startTime: string;
+  startTime: Date;
 
   @Column()
-  endTime: string;
+  endTime: Date;
 
   @Column()
   curentPrice: number;
@@ -49,13 +49,13 @@ export class Lot extends BaseEntity {
   )
   user: User;
 
+  @Column()
+  userId: number;
+
   @OneToMany(
     type => Bid,
     bid => bid.lot,
     { eager: true },
   )
   bids: Bid[];
-
-  @Column()
-  ownerId: number;
 }
