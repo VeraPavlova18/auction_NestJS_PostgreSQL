@@ -8,6 +8,10 @@ import {
   Logger,
   Get,
   Query,
+  Param,
+  ParseIntPipe,
+  Delete,
+  Patch,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LotsService } from './lots.service';
@@ -44,6 +48,31 @@ export class LotsController {
       )}`,
     );
     return this.lotsService.getMyLots(filterDto, user);
+  }
+
+  @Get('/:id')
+  getLotById(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ): Promise<Lot> {
+    return this.lotsService.getLotById(id, user);
+  }
+
+  @Delete('/:id')
+  deleteLotById(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ): Promise<void> {
+    return this.lotsService.deleteLotById(id, user);
+  }
+
+  @Patch(':id/edit')
+  updateLot(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createLotDto: CreateLotDto,
+    @GetUser() user: User,
+  ): Promise<Lot> {
+    return this.lotsService.updateLot(id, createLotDto, user);
   }
 
 }

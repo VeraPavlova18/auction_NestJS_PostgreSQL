@@ -48,6 +48,7 @@ export class LotRepository extends Repository<Lot> {
     delete lot.user;
     return lot;
   }
+
   async getMyLots(filterDto: GetMyLotsFilterDto, user: User): Promise<Lot[]> {
     const { status, search } = filterDto;
     const query = this.createQueryBuilder('lot');
