@@ -1,4 +1,12 @@
-import { IsNotEmpty, IsDate, IsPositive, MaxDate, MinDate, Min, Max } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsDate,
+  IsPositive,
+  MaxDate,
+  MinDate,
+  Min,
+  Max,
+} from 'class-validator';
 import * as moment from 'moment';
 import { Type } from 'class-transformer';
 import { Lot } from '../lot.entity';
@@ -35,5 +43,4 @@ export class CreateLotDto {
   // @Max(this.curentPrice)
   @Type(() => Number)
   estimatedPrice: number;
-
 }

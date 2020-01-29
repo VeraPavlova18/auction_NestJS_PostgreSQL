@@ -74,5 +74,4 @@ export class LotsController {
   ): Promise<Lot> {
     return this.lotsService.updateLot(id, createLotDto, user);
   }
-
 }

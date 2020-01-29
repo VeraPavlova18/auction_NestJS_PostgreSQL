@@ -9,7 +9,6 @@ import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 
 @EntityRepository(Lot)
 export class LotRepository extends Repository<Lot> {
-
   private logger = new Logger('LotRepository');
 
   async createLot(createLotDto: CreateLotDto, user: User): Promise<Lot> {
@@ -71,9 +70,9 @@ export class LotRepository extends Repository<Lot> {
       return lots;
     } catch (error) {
       this.logger.error(
-        `Failed to get lots for user "${
-          user.email
-        }". Filters: ${JSON.stringify(filterDto)}`,
+        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(
+          filterDto,
+        )}`,
         error.stack,
       );
       throw new InternalServerErrorException();

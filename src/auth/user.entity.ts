@@ -9,6 +9,7 @@ import {
 import * as bcript from 'bcrypt';
 import { Lot } from '../lots/lot.entity';
 import { Bid } from '../bids/bid.entity';
+import { IsEmpty } from 'class-validator';
 
 @Entity()
 @Unique(['phone'])
@@ -37,6 +38,14 @@ export class User extends BaseEntity {
 
   @Column()
   salt: string;
+
+  @Column({
+    nullable: true,
+  })
+  confirmToken: string;
+
+  @Column()
+  isconfirm: boolean;
 
   @OneToMany(
     type => Lot,
