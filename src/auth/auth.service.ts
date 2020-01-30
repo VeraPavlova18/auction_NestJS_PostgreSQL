@@ -12,6 +12,8 @@ import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './jwt-payload.interface';
 import { SendEmailService } from 'src/mail/sendEmailService';
 import { User } from './user.entity';
+import * as uuidv4 from 'uuid/v4';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,40 +28,53 @@ export class AuthService {
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     return this.userRepository.signUp(authCredentialsDto).then(user =>
       this.sendEmailService.sendConfirmEmail(
-        'pavlova.vera18@gmail.com', // DONT FORGET!!! change to user.email
+        'pavlova.vera18@gmail.com', // DONT FORGET!!! change to user.email!!!
         user.firstName,
         `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/auth/confirm/${user.confirmToken}`,
       ),
     );
   }
 
-  async getUserByConfirmToken(confirmToken: string): Promise<User> {
-    const found = await this.userRepository.findOne({
-      where: { confirmToken },
-    });
-    if (!found) {
-      throw new NotFoundException(
-        `User with confirmToken "${confirmToken}" not found`,
-      );
-    }
-    return found;
-  }
-
   async confirmUser(confirmToken: string): Promise<User> {
-    const user = await this.getUserByConfirmToken(confirmToken);
+    const user = await this.userRepository.getUser({ confirmToken });
     user.isconfirm = true;
     user.confirmToken = null;
     await user.save();
     return user;
   }
 
+  async sendRecoveryLink(email: string): Promise<void> {
+    const user = await this.userRepository.getUser({ email });
+    if (!user.confirmToken) {
+      user.confirmToken = uuidv4();
+    }
+    await user.save();
+    await this.sendEmailService.sendRecoveryEmail(
+      'pavlova.vera18@gmail.com', // DONT FORGET!!! change to user.email!!!
+      user.firstName,
+      `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/auth/recovery-pass/${user.confirmToken}`,
+    );
+  }
+
+  async changePassAndLogin(
+    confirmToken: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ accessToken: string }> {
+    const email = await (await this.userRepository.getUser({ confirmToken })).email;
+    await this.userRepository.changePass(confirmToken, changePasswordDto);
+    return this.signInAfterChangePass(changePasswordDto, email);
+  }
+
+  async goToChangePassForm(confirmToken: string): Promise<void> {
+    await this.userRepository.getUser({ confirmToken });
+  }
+
   async signIn(
     signInCredentialsDto: SignInCredentialsDto,
   ): Promise<{ accessToken: string }> {
-    const isConfirm = await this.userRepository.IsUserConfirm(
+    const isConfirm = await this.userRepository.isUserConfirm(
       signInCredentialsDto,
     );
-
     if (!isConfirm) {
       throw new UnauthorizedException('Confirm your email address');
     }
@@ -67,7 +82,6 @@ export class AuthService {
     const email = await this.userRepository.validateUserPassword(
       signInCredentialsDto,
     );
-
     if (!email) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -77,6 +91,26 @@ export class AuthService {
     this.logger.debug(
       `Generated JWT Token with payload ${JSON.stringify(payload)}`,
     );
+
+    return { accessToken };
+  }
+
+  async signInAfterChangePass(
+    changePasswordDto: ChangePasswordDto,
+    email: string,
+  ): Promise<{ accessToken: string }> {
+
+    email = await this.userRepository.validateChangeUserPassword(changePasswordDto, email);
+    if (!email) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload: JwtPayload = { email };
+    const accessToken = await this.jwtService.sign(payload);
+    this.logger.debug(
+      `Generated JWT Token with payload ${JSON.stringify(payload)}`,
+    );
+
     return { accessToken };
   }
 }

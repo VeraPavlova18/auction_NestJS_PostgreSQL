@@ -8,7 +8,7 @@ export const mailerModuleConfig: MailerModule = {
         user: process.env.GOOGLE_USER,
         pass: process.env.GOOGLE_PASS,
       },
-      },
+    },
     defaults: {
       from: '"nest-modules" <modules@nestjs.com>',
     },
