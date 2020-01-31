@@ -6,8 +6,7 @@ import {
 } from 'class-validator';
 import * as moment from 'moment';
 import { Type } from 'class-transformer';
-import { NumberIsMoreThan } from '../../validation-decorators/numberIsMoreThan';
-import { ObjIsMoreThan } from '../../validation-decorators/objIsMoreThan';
+import { IsMoreThan } from '../../validation-decorators/isMoreThan';
 
 export class CreateLotDto {
   @IsNotEmpty()
@@ -27,7 +26,7 @@ export class CreateLotDto {
 
   @IsNotEmpty()
   @IsDate()
-  @ObjIsMoreThan('startTime', {
+  @IsMoreThan('startTime', {
     message: 'End Time must be later than start Time',
   })
   @Type(() => Date)
@@ -40,7 +39,7 @@ export class CreateLotDto {
 
   @IsNotEmpty()
   @IsPositive()
-  @NumberIsMoreThan('curentPrice', {
+  @IsMoreThan('curentPrice', {
     message: 'EstimatedPrice must be more than curentPrice',
   })
   @Type(() => Number)

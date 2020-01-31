@@ -20,6 +20,7 @@ import { Lot } from './lot.entity';
 import { User } from '../auth/user.entity';
 import { GetUser } from '../auth/get-user.decorator';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
+import { GetLotsFilterDto } from './dto/get-Lots-filter.dto copy';
 
 @Controller('lots')
 @UseGuards(AuthGuard('jwt'))
@@ -37,7 +38,7 @@ export class LotsController {
     return this.lotsService.createLot(createLotDto, user);
   }
 
-  @Get()
+  @Get('/my')
   getMyLots(
     @Query(ValidationPipe) filterDto: GetMyLotsFilterDto,
     @GetUser() user: User,
@@ -48,6 +49,19 @@ export class LotsController {
       )}`,
     );
     return this.lotsService.getMyLots(filterDto, user);
+  }
+
+  @Get()
+  getLots(
+    @Query(ValidationPipe) filterDto: GetLotsFilterDto,
+    @GetUser() user: User,
+  ): Promise<Lot[]> {
+    this.logger.verbose(
+      `User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(
+        filterDto,
+      )}`,
+    );
+    return this.lotsService.getLots(filterDto, user);
   }
 
   @Get('/:id')

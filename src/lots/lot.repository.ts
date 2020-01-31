@@ -6,6 +6,7 @@ import { LotStatus } from './lot-status.enum';
 import { Logger, InternalServerErrorException } from '@nestjs/common';
 import * as moment from 'moment';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
+import { GetLotsFilterDto } from './dto/get-Lots-filter.dto copy';
 
 @EntityRepository(Lot)
 export class LotRepository extends Repository<Lot> {
@@ -67,6 +68,35 @@ export class LotRepository extends Repository<Lot> {
 
     try {
       const lots = await query.getMany();
+      return lots;
+    } catch (error) {
+      this.logger.error(
+        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(
+          filterDto,
+        )}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getLots(filterDto: GetLotsFilterDto, user: User): Promise<Lot[]> {
+    const { search, take = 10, skip = 0 } = filterDto;
+    const query = this.createQueryBuilder('lot');
+
+    if (search) {
+      query.andWhere(
+        '(lot.title LIKE :search OR lot.description LIKE :search)',
+        { search: `%${search}%` },
+      );
+    }
+
+    try {
+      const lots = await query
+        .where('lot.status = :status', { status: 'IN_PROCESS' })
+        .take(Math.abs(+take))
+        .skip(Math.abs(+skip))
+        .getMany();
       return lots;
     } catch (error) {
       this.logger.error(

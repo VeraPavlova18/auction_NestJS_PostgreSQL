@@ -1,9 +1,9 @@
 import {registerDecorator, ValidationOptions, ValidationArguments} from 'class-validator';
 
-export function ObjIsMoreThan(property: string, validationOptions?: ValidationOptions) {
+export function IsMoreThan(property: string, validationOptions?: ValidationOptions) {
    return (object: object, propertyName: string) => {
         registerDecorator({
-            name: 'objIsMoreThan',
+            name: 'IsMoreThan',
             target: object.constructor,
             propertyName,
             constraints: [property],
@@ -12,9 +12,7 @@ export function ObjIsMoreThan(property: string, validationOptions?: ValidationOp
                 validate(value: any, args: ValidationArguments) {
                     const [relatedPropertyName] = args.constraints;
                     const relatedValue = (args.object as any)[relatedPropertyName];
-                    return  typeof value === 'object' &&
-                           typeof relatedValue === 'object' &&
-                           value > relatedValue;
+                    return value > relatedValue;
                 },
             },
         });
