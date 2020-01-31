@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, Repository, getConnection } from 'typeorm';
 import { Lot } from './lot.entity';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { User } from '../auth/user.entity';
@@ -6,7 +6,7 @@ import { LotStatus } from './lot-status.enum';
 import { Logger, InternalServerErrorException } from '@nestjs/common';
 import * as moment from 'moment';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
-import { GetLotsFilterDto } from './dto/get-Lots-filter.dto copy';
+import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 
 @EntityRepository(Lot)
 export class LotRepository extends Repository<Lot> {
@@ -47,6 +47,15 @@ export class LotRepository extends Repository<Lot> {
 
     delete lot.user;
     return lot;
+  }
+
+  async changeLotStatus(): Promise<void> {
+    await getConnection()
+    .createQueryBuilder()
+    .update(Lot)
+    .set({ status: LotStatus.IN_PROCESS })
+    .where('startTime <= now()')
+    .execute();
   }
 
   async getMyLots(filterDto: GetMyLotsFilterDto, user: User): Promise<Lot[]> {

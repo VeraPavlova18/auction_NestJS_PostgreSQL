@@ -24,13 +24,19 @@ export class Lot extends BaseEntity {
   @Column()
   image: string;
 
-  @Column()
+  @Column({
+    type: 'timestamp with time zone',
+  })
   createdAt: Date;
 
-  @Column()
+  @Column({
+    type: 'timestamp with time zone',
+  })
   startTime: Date;
 
-  @Column()
+  @Column({
+    type: 'timestamp with time zone',
+  })
   endTime: Date;
 
   @Column()

@@ -5,7 +5,8 @@ import { LotRepository } from './lot.repository';
 import { Lot } from './lot.entity';
 import { User } from '../auth/user.entity';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
-import { GetLotsFilterDto } from './dto/get-Lots-filter.dto copy';
+import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class LotsService {
@@ -15,6 +16,11 @@ export class LotsService {
     @InjectRepository(LotRepository)
     private lotRepository: LotRepository,
   ) {}
+
+  @Cron('00 * * * * *')
+  handleCron() {
+    return this.lotRepository.changeLotStatus();
+  }
 
   async createLot(createLotDto: CreateLotDto, user: User): Promise<Lot> {
     return this.lotRepository.createLot(createLotDto, user);
@@ -45,7 +51,7 @@ export class LotsService {
       this.logger.verbose(`User "${user.email}" can't delete lot with status not equals pending.`);
       throw new NotAcceptableException('can\'t delete lot with status not equals pending.');
     }
-    this.lotRepository.delete(lot);
+    await this.lotRepository.delete(lot);
 
     this.logger.verbose(`User "${user.email}" deleted lot with ID "${id}".`);
   }

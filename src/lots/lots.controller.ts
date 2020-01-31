@@ -20,7 +20,7 @@ import { Lot } from './lot.entity';
 import { User } from '../auth/user.entity';
 import { GetUser } from '../auth/get-user.decorator';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
-import { GetLotsFilterDto } from './dto/get-Lots-filter.dto copy';
+import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 
 @Controller('lots')
 @UseGuards(AuthGuard('jwt'))

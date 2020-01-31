@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { LotsModule } from './lots/lots.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './config/typeorm-config';
@@ -12,6 +13,7 @@ import { mailerModuleConfig } from './config/mailer-module-config';
   imports: [
     TypeOrmModule.forRoot(typeOrmConfig),
     MailerModule.forRootAsync(mailerModuleConfig),
+    ScheduleModule.forRoot(),
     AuthModule,
     LotsModule,
     BidsModule,
