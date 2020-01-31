@@ -2,14 +2,12 @@ import {
   IsNotEmpty,
   IsDate,
   IsPositive,
-  MaxDate,
   MinDate,
-  Min,
-  Max,
 } from 'class-validator';
 import * as moment from 'moment';
 import { Type } from 'class-transformer';
-import { Lot } from '../lot.entity';
+import { NumberIsMoreThan } from '../../validation-decorators/numberIsMoreThan';
+import { ObjIsMoreThan } from '../../validation-decorators/objIsMoreThan';
 
 export class CreateLotDto {
   @IsNotEmpty()
@@ -23,13 +21,15 @@ export class CreateLotDto {
 
   @IsNotEmpty()
   @IsDate()
-  @MaxDate(moment().toDate())
+  @MinDate(moment().toDate())
   @Type(() => Date)
   startTime: Date;
 
   @IsNotEmpty()
   @IsDate()
-  // @MinDate(this.startTime)
+  @ObjIsMoreThan('startTime', {
+    message: 'End Time must be later than start Time',
+  })
   @Type(() => Date)
   endTime: Date;
 
@@ -40,7 +40,9 @@ export class CreateLotDto {
 
   @IsNotEmpty()
   @IsPositive()
-  // @Max(this.curentPrice)
+  @NumberIsMoreThan('curentPrice', {
+    message: 'EstimatedPrice must be more than curentPrice',
+  })
   @Type(() => Number)
   estimatedPrice: number;
 }
