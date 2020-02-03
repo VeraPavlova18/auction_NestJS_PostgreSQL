@@ -15,8 +15,10 @@ export class Bid extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  creationTime: string;
+  @Column({
+    type: 'timestamp with time zone',
+  })
+  creationTime: Date;
 
   @Column()
   proposedPrice: number;
@@ -46,5 +48,5 @@ export class Bid extends BaseEntity {
   lotId: number;
 
   @Column()
-  customerId: number;
+  userId: number;
 }
