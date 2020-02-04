@@ -10,7 +10,7 @@ import { BidCustomer } from './bidCustomer.interface';
 export class BidRepository extends Repository<Bid> {
   private logger = new Logger('BidRepository');
 
-  async createBid(user: User, createBidDto: CreateBidDto, id: number): Promise<Bid> {
+  async createBid(user: User, createBidDto: CreateBidDto, id: number): Promise<BidCustomer> {
     const { proposedPrice } = createBidDto;
 
     const bid = new Bid();
@@ -30,7 +30,17 @@ export class BidRepository extends Repository<Bid> {
     }
 
     delete bid.user;
-    return bid;
+    delete bid.userId;
+    let customer;
+    if (bid.userId === user.id) {
+      customer = `You`;
+    } else {
+      customer = `Customer ${Math.floor(Math.random() * 100000 + 1)}`;
+    }
+    return {
+      ...bid,
+      customer,
+    } as BidCustomer;
   }
 
   async getBids(user: User, id: number): Promise<BidCustomer[]> {
