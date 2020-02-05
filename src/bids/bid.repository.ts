@@ -28,15 +28,14 @@ export class BidRepository extends Repository<Bid> {
       );
       throw new InternalServerErrorException();
     }
-
-    delete bid.user;
-    delete bid.userId;
     let customer;
     if (bid.userId === user.id) {
       customer = `You`;
     } else {
       customer = `Customer ${Math.floor(Math.random() * 100000 + 1)}`;
     }
+    delete bid.user;
+    delete bid.userId;
     return {
       ...bid,
       customer,

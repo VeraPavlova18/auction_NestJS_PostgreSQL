@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as safeJsonStringify from 'safe-json-stringify';
 
 import { AppGateway } from 'src/app.gateway';
 import { User } from 'src/auth/user.entity';
