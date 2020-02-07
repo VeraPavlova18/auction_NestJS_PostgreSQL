@@ -22,7 +22,7 @@ export class LotsService {
 
   @Cron('0 * * * * *')
   async handleCron() {
-    await this.lotRepository.getLotsForChangeStatus(`"startTime" <= now() AND "endTime" > now() AND status != 'IN_PROCESS'`)
+    await this.lotRepository.getLotsForChangeStatus(`"startTime" <= now() AND "endTime" > now() AND status = 'PENDING'`)
       .then(lots => {
         lots.map(lot => this.lotRepository.changeLotsStatus(LotStatus.IN_PROCESS, `lot.id = :id`, {id: lot.id}));
       });
@@ -35,23 +35,24 @@ export class LotsService {
           lots.map(async lot => {
             const owner = await this.lotRepository.getLotOwner(lot);
             const { max: maxBid } = Object(await this.lotRepository.getMaxBidOfLot(lot));
-            const ownerOfMaxBid = await this.lotRepository.getOwnerOfMaxBidOfLot(maxBid);
-
+            if (maxBid) {
+              const ownerOfMaxBid = await this.lotRepository.getOwnerOfMaxBidOfLot(maxBid);
+              this.sendEmailService.sendEmailToTheBidsWinner(
+                'pavlova.vera18@gmail.com', // DONT FORGET!!! change email ownerOfMaxBid.email!!!
+                ownerOfMaxBid.firstName,
+                lot.title,
+                maxBid,
+                `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+              );
+            }
             this.sendEmailService.sendEmailToTheLotOwner(
               'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
               owner.firstName,
               lot.title,
-              maxBid,
+              maxBid || lot.curentPrice,
               `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
             );
 
-            this.sendEmailService.sendEmailToTheBidsWinner(
-              'pavlova.vera18@gmail.com', // DONT FORGET!!! change email ownerOfMaxBid.email!!!
-              ownerOfMaxBid.firstName,
-              lot.title,
-              maxBid,
-              `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-            );
           });
         }
       });

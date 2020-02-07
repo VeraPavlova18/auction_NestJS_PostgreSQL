@@ -1,4 +1,4 @@
-import { EntityRepository, Repository, getManager } from 'typeorm';
+import { EntityRepository, Repository, getManager, getConnection } from 'typeorm';
 import { User } from '../auth/user.entity';
 import { Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { Bid } from './bid.entity';
@@ -17,6 +17,24 @@ export class BidRepository extends Repository<Bid> {
     delete bid.user;
     delete bid.userId;
     return { ...bid, customer } as BidCustomer;
+  }
+
+  async getLot(id: number): Promise<Lot> {
+    return getConnection()
+      .createQueryBuilder()
+      .select('lot')
+      .from(Lot, 'lot')
+      .where('lot.id = :id',  { id })
+      .getOne();
+  }
+
+  async getLotOwner(lot: Lot): Promise<User> {
+    return getConnection()
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where('user.id = :id',  { id: lot.userId })
+      .getOne();
   }
 
   async createBid(
@@ -38,6 +56,15 @@ export class BidRepository extends Repository<Bid> {
             .where('bid.lotId = :lotId', { lotId: id })
             .getRawOne();
           const lot = await transactionalEntityManager.findOne(Lot, id);
+          if (lot.status !== LotStatus.IN_PROCESS)  {
+            this.logger.error(
+              `Failed to create a bid for lot ${lot.title}(id: ${lot.id}) by user ${user.email}.`,
+            );
+            throw new BadRequestException({
+              status: 400,
+              error: `Failed to create a bid for lot ${lot.title}(id: ${lot.id}) by user ${user.email}.`,
+            });
+          }
           const { estimatedPrice, curentPrice } = lot;
 
           if (proposedPrice < curentPrice || proposedPrice > estimatedPrice ) {
@@ -46,7 +73,7 @@ export class BidRepository extends Repository<Bid> {
               error: `proposedPrice: ${proposedPrice} must be equal or greater then lot curentPrice: ${curentPrice} and less or equal then estimatedPrice: ${estimatedPrice}`,
             });
           }
-          if (proposedPrice <= max || proposedPrice > estimatedPrice) {
+          if (+proposedPrice <= max || +proposedPrice > estimatedPrice) {
             throw new BadRequestException({
               status: 400,
               error: `proposedPrice: ${proposedPrice} must be greater then previous bid: ${max} and less or equal then estimatedPrice: ${estimatedPrice}`,

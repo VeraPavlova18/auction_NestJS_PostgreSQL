@@ -7,6 +7,7 @@ import { BidRepository } from './bid.repository';
 import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
 import { BidCustomer } from './bidCustomer.interface';
+import { SendEmailService } from 'src/mail/sendEmailService';
 
 @Injectable()
 export class BidsService {
@@ -15,6 +16,7 @@ export class BidsService {
   constructor(
     @InjectRepository(BidRepository)
     private bidRepository: BidRepository,
+    private sendEmailService: SendEmailService,
     private gateway: AppGateway,
   ) {}
 
@@ -23,10 +25,37 @@ export class BidsService {
     createBidDto: CreateBidDto,
     id: number,
   ): Promise<BidCustomer> {
-    return this.bidRepository.createBid(user, createBidDto, id).then(bid => {
+    return this.bidRepository.createBid(user, createBidDto, id)
+      .then(bid => {
       this.gateway.wss.emit('newBid', bid);
       return bid;
-    });
+      })
+      .then(async bid => {
+        const lot = await this.bidRepository.getLot(id);
+        const maxBid  = +bid.proposedPrice;
+        if (maxBid === lot.estimatedPrice) {
+          const owner = await this.bidRepository.getLotOwner(lot);
+          const ownerOfMaxBid = user;
+
+          this.sendEmailService.sendEmailToTheBidsWinner(
+            'pavlova.vera18@gmail.com', // DONT FORGET!!! change email ownerOfMaxBid.email!!!
+            ownerOfMaxBid.firstName,
+            lot.title,
+            maxBid,
+            `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+          );
+
+          this.sendEmailService.sendEmailToTheLotOwner(
+            'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
+            owner.firstName,
+            lot.title,
+            maxBid || lot.curentPrice,
+            `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+          );
+        }
+
+        return bid;
+      });
   }
 
   async getBidsByLotId(user: User, id: number): Promise<Bid[]> {
