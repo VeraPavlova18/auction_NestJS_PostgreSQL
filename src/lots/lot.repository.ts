@@ -7,6 +7,7 @@ import { Logger, InternalServerErrorException } from '@nestjs/common';
 import * as moment from 'moment';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
+import { Bid } from 'src/bids/bid.entity';
 
 @EntityRepository(Lot)
 export class LotRepository extends Repository<Lot> {
@@ -49,13 +50,60 @@ export class LotRepository extends Repository<Lot> {
     return lot;
   }
 
-  async changeLotStatus(): Promise<void> {
-    await getConnection()
+  async getLotsForChangeStatus(condition: string): Promise<Lot[]> {
+    return getConnection()
+      .createQueryBuilder()
+      .select('lot')
+      .from(Lot, 'lot')
+      .where(condition)
+      .getMany();
+  }
+
+  async getLotOwner(lot: Lot): Promise<User> {
+    return getConnection()
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where('user.id = :id',  { id: lot.userId })
+      .getOne();
+  }
+
+  async getMaxBidOfLot(lot: Lot): Promise<object> {
+    return getConnection()
     .createQueryBuilder()
-    .update(Lot)
-    .set({ status: LotStatus.IN_PROCESS })
-    .where('startTime <= now()')
-    .execute();
+    .select('Max(bid.proposedPrice)', 'max')
+    .from(Bid, 'bid')
+    .where('bid.lotId = :lotId', { lotId: lot.id })
+    .getRawOne();
+  }
+
+  async getOwnerOfMaxBidOfLot(max: number): Promise<User> {
+    const maxBid = await getConnection()
+      .createQueryBuilder()
+      .select('bid')
+      .from(Bid, 'bid')
+      .where('bid.proposedPrice = :max', {max})
+      .getOne();
+
+    return getConnection()
+    .createQueryBuilder()
+    .select('user')
+    .from(User, 'user')
+    .where('user.id = :id', {  id: maxBid.userId })
+    .getOne();
+  }
+
+  async changeLotsStatus(
+    lotStatus: LotStatus,
+    condition: string,
+    params: object,
+  ): Promise<void> {
+    await getConnection()
+      .createQueryBuilder()
+      .update(Lot)
+      .set({ status: lotStatus })
+      .where(condition, params)
+      .execute();
   }
 
   async getMyLots(filterDto: GetMyLotsFilterDto, user: User): Promise<Lot[]> {

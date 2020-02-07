@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger, InternalServerErrorException, NotAcceptableException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, NotAcceptableException } from '@nestjs/common';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LotRepository } from './lot.repository';
@@ -7,6 +7,8 @@ import { User } from '../auth/user.entity';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { Cron } from '@nestjs/schedule';
+import { LotStatus } from './lot-status.enum';
+import { SendEmailService } from 'src/mail/sendEmailService';
 
 @Injectable()
 export class LotsService {
@@ -15,11 +17,44 @@ export class LotsService {
   constructor(
     @InjectRepository(LotRepository)
     private lotRepository: LotRepository,
+    private sendEmailService: SendEmailService,
   ) {}
 
-  @Cron('00 * * * * *')
-  handleCron() {
-    return this.lotRepository.changeLotStatus();
+  @Cron('0 * * * * *')
+  async handleCron() {
+    await this.lotRepository.getLotsForChangeStatus(`"startTime" <= now() AND "endTime" > now() AND status != 'IN_PROCESS'`)
+      .then(lots => {
+        lots.map(lot => this.lotRepository.changeLotsStatus(LotStatus.IN_PROCESS, `lot.id = :id`, {id: lot.id}));
+      });
+
+    await this.lotRepository.getLotsForChangeStatus(`"endTime" <= now() AND status != 'CLOSED'`)
+      .then(async lots => {
+        await Promise.all(lots.map(lot => this.lotRepository.changeLotsStatus(LotStatus.CLOSED, `lot.id = :id`, {id: lot.id})));
+
+        if (lots.length > 0) {
+          lots.map(async lot => {
+            const owner = await this.lotRepository.getLotOwner(lot);
+            const { max: maxBid } = Object(await this.lotRepository.getMaxBidOfLot(lot));
+            const ownerOfMaxBid = await this.lotRepository.getOwnerOfMaxBidOfLot(maxBid);
+
+            this.sendEmailService.sendEmailToTheLotOwner(
+              'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
+              owner.firstName,
+              lot.title,
+              maxBid,
+              `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+            );
+
+            this.sendEmailService.sendEmailToTheBidsWinner(
+              'pavlova.vera18@gmail.com', // DONT FORGET!!! change email ownerOfMaxBid.email!!!
+              ownerOfMaxBid.firstName,
+              lot.title,
+              maxBid,
+              `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+            );
+          });
+        }
+      });
   }
 
   async createLot(createLotDto: CreateLotDto, user: User): Promise<Lot> {
