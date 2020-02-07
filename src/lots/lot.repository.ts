@@ -1,4 +1,4 @@
-import { EntityRepository, Repository, getConnection } from 'typeorm';
+import { EntityRepository, Repository, getConnection, In } from 'typeorm';
 import { Lot } from './lot.entity';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { User } from '../auth/user.entity';
@@ -114,26 +114,42 @@ export class LotRepository extends Repository<Lot> {
       .execute();
   }
 
+  async getMyBids(user: User): Promise<Bid[]> {
+    return await getConnection()
+      .createQueryBuilder()
+      .select('bid')
+      .from(Bid, 'bid')
+      .where('bid.userId = :id', {id: user.id})
+      .getMany();
+  }
+
   async getMyLots(filterDto: GetMyLotsFilterDto, user: User): Promise<Lot[]> {
-    const { status, search } = filterDto;
+    const { status, search, take = 10, skip = 0 } = filterDto;
+    const myBids = await this.getMyBids(user);
     const query = this.createQueryBuilder('lot');
 
-    query.where('lot.userId = :userId', { userId: user.id });
+    if (myBids.length > 0) {
+      const myLotsIdFromMyBids = [];
+      myBids.map(bid => myLotsIdFromMyBids.push(bid.lotId));
+      query.where('lot.userId = :userId OR lot.id IN (:...ids)', { userId: user.id, ids: myLotsIdFromMyBids });
+    } else {
+      query.where('lot.userId = :userId', { userId: user.id });
+    }
 
     if (status) {
       query.andWhere('lot.status = :status', { status });
     }
-
     if (search) {
       query.andWhere(
         '(lot.title LIKE :search OR lot.description LIKE :search)',
         { search: `%${search}%` },
       );
     }
-
     try {
-      const lots = await query.getMany();
-      return lots;
+      return await query
+        .take(Math.abs(+take))
+        .skip(Math.abs(+skip))
+        .getMany();
     } catch (error) {
       this.logger.error(
         `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(
@@ -148,6 +164,7 @@ export class LotRepository extends Repository<Lot> {
   async getLots(filterDto: GetLotsFilterDto, user: User): Promise<Lot[]> {
     const { search, take = 10, skip = 0 } = filterDto;
     const query = this.createQueryBuilder('lot');
+    query.where('lot.status = :status', { status: 'IN_PROCESS' });
 
     if (search) {
       query.andWhere(
@@ -155,14 +172,11 @@ export class LotRepository extends Repository<Lot> {
         { search: `%${search}%` },
       );
     }
-
     try {
-      const lots = await query
-        .where('lot.status = :status', { status: 'IN_PROCESS' })
+      return await query
         .take(Math.abs(+take))
         .skip(Math.abs(+skip))
         .getMany();
-      return lots;
     } catch (error) {
       this.logger.error(
         `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(
