@@ -8,10 +8,18 @@ import * as moment from 'moment';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { Bid } from 'src/bids/bid.entity';
+import { LotIsWinner } from './lotIsWinner.interface';
 
 @EntityRepository(Lot)
 export class LotRepository extends Repository<Lot> {
   private logger = new Logger('LotRepository');
+
+  async customizeLotWinner(lot: Lot, user: User): Promise<LotIsWinner> {
+    const { max: maxBid } = Object(await this.getMaxBidOfLot(lot));
+    const ownerOfMaxBid = await this.getOwnerOfMaxBidOfLot(maxBid);
+    const isWinner = user.id === ownerOfMaxBid.id ? true : false;
+    return { ...lot, isWinner } as LotIsWinner;
+  }
 
   async createLot(createLotDto: CreateLotDto, user: User): Promise<Lot> {
     const {

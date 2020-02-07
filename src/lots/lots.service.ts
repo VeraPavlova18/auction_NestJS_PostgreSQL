@@ -9,6 +9,7 @@ import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { Cron } from '@nestjs/schedule';
 import { LotStatus } from './lot-status.enum';
 import { SendEmailService } from 'src/mail/sendEmailService';
+import { LotIsWinner } from './lotIsWinner.interface';
 
 @Injectable()
 export class LotsService {
@@ -70,14 +71,18 @@ export class LotsService {
     return this.lotRepository.getLots(filterDto, user);
   }
 
-  async getLotById(id: number, user: User): Promise<Lot> {
-    const found = await this.lotRepository.findOne({
-      where: { id, userId: user.id },
+  async getLotById(id: number, user: User): Promise<LotIsWinner | Lot> {
+    const lot = await this.lotRepository.findOne({
+      where: { id },
     });
-    if (!found) {
+    if (!lot) {
       throw new NotFoundException(`Lot with ID "${id}" not found`);
     }
-    return found;
+    if (lot.status === LotStatus.CLOSED) {
+     return this.lotRepository.customizeLotWinner(lot, user);
+    } else {
+      return lot;
+    }
   }
 
   async deleteLotById(id: number, user: User): Promise<void> {
