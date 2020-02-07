@@ -106,6 +106,7 @@ export class BidRepository extends Repository<Bid> {
     try {
       const bids = await query
         .where('bid.lotId = :lotId', { lotId: id })
+        .orderBy('bid.creationTime', 'DESC')
         .getMany();
       return bids.map(bid => this.customizeBid(bid, user));
     } catch (error) {

@@ -149,6 +149,7 @@ export class LotRepository extends Repository<Lot> {
       return await query
         .take(Math.abs(+take))
         .skip(Math.abs(+skip))
+        .orderBy('lot.createdAt', 'DESC')
         .getMany();
     } catch (error) {
       this.logger.error(
@@ -176,6 +177,7 @@ export class LotRepository extends Repository<Lot> {
       return await query
         .take(Math.abs(+take))
         .skip(Math.abs(+skip))
+        .orderBy('lot.createdAt', 'DESC')
         .getMany();
     } catch (error) {
       this.logger.error(
