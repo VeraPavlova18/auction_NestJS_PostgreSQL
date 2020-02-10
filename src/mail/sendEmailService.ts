@@ -40,4 +40,23 @@ export class SendEmailService {
       text: `${name}, your lot ${lotTitle} is closed with current price of ${price}. You can find the details by follow this link: ${link}`,
     });
   }
+
+  public sendOrderToTheLotOwner(email, name, lotTitle, link = '#'): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `The order created for your lot ${lotTitle}`,
+      text: `${name}, you need send this lot to the customer. Details for this order you can find by follow this link: ${link}`,
+    });
+  }
+
+  public sendChangeStatusOfOrderToTheLotCustomer(email, name, lotTitle, link = '#'): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `Seller change the order status to "sent" for lot ${lotTitle}`,
+      text: `${name}, seller change the order status to "sent" for lot ${lotTitle}. Please change the order status when you receive the lot ${lotTitle}.
+      You can change the order status by follow this link: ${link}`,
+    });
+  }
 }

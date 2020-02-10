@@ -3,7 +3,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { OrderStatus } from './order-status.enum';
 import { ArrivalType } from './arrival-type.enum';
@@ -23,11 +24,11 @@ export class Order extends BaseEntity {
   @Column()
   status: OrderStatus;
 
-  @ManyToOne(
+  @OneToOne(
     type => Bid,
-    bid => bid.orders,
-    { eager: false },
+    bid => bid.order,
   )
+  @JoinColumn()
   bid: Bid;
 
   @Column()

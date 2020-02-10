@@ -5,6 +5,7 @@ import {
   Column,
   ManyToOne,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { User } from '../auth/user.entity';
 import { Lot } from '../lots/lot.entity';
@@ -37,12 +38,11 @@ export class Bid extends BaseEntity {
   )
   lot: Lot;
 
-  @OneToMany(
+  @OneToOne(
     type => Order,
     order => order.bid,
-    { eager: true },
   )
-  orders: Order[];
+  order: Order;
 
   @Column()
   lotId: number;

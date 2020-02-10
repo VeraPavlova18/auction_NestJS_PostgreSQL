@@ -9,7 +9,7 @@ import { BidsController } from './bids.controller';
 import { SendEmailService } from 'src/mail/sendEmailService';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([BidRepository]), AuthModule, SendEmailService],
+  imports: [TypeOrmModule.forFeature([BidRepository]), AuthModule],
   controllers: [BidsController],
   providers: [BidsService, AppGateway, SendEmailService],
 })
