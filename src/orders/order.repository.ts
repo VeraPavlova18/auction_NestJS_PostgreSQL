@@ -1,5 +1,5 @@
 import { EntityRepository, Repository, getConnection } from 'typeorm';
-import { Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Logger, InternalServerErrorException, BadRequestException, NotAcceptableException } from '@nestjs/common';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { User } from 'src/auth/user.entity';
@@ -117,5 +117,25 @@ export class OrderRepository extends Repository<Order> {
       .set({ status: orderStatus })
       .where(`id = :id`, { id: order.id })
       .execute();
+  }
+
+  async updateOrder(
+    id: number,
+    createOrderDto: CreateOrderDto,
+    user: User,
+  ): Promise<Order> {
+
+    const order = await this.getOrderByLotId(id);
+    if (order.status !== 'PENDING') {
+      this.logger.verbose(`User "${user.email}" can't change order with status not equals pending.`);
+      throw new NotAcceptableException('can\'t change lot with status not equals pending.');
+    }
+    const { arrivalLocation, arrivalType } = createOrderDto;
+
+    order.arrivalLocation = arrivalLocation ?? order.arrivalLocation;
+    order.arrivalType = arrivalType ?? order.arrivalType;
+
+    await order.save();
+    return order;
   }
 }

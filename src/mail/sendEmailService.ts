@@ -59,4 +59,22 @@ export class SendEmailService {
       You can change the order status by follow this link: ${link}`,
     });
   }
+
+  public sendDeliveredEmailToTheLotOwner(email, name, lotTitle, link = '#'): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `Customer change the order status to "delivered" for lot ${lotTitle}`,
+      text: `${name}, customer change the order status to "delivered" for lot ${lotTitle}. Details for this order you can find by follow this link: ${link}.`,
+    });
+  }
+
+  public sendDeliveredEmailToTheLotCustomer(email, name, lotTitle, link = '#'): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `You change the order status to "delivered" for lot ${lotTitle}`,
+      text: `${name}, you change the order status to "delivered" for lot ${lotTitle}. Details for this order you can find by follow this link: ${link}.`,
+    });
+  }
 }
