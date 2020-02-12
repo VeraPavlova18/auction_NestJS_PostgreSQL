@@ -1,9 +1,4 @@
-import {
-  IsNotEmpty,
-  IsDate,
-  IsPositive,
-  MinDate,
-} from 'class-validator';
+import { IsNotEmpty, IsDate, IsPositive, MinDate } from 'class-validator';
 import * as moment from 'moment';
 import { Type } from 'class-transformer';
 import { IsMoreThan } from '../../validation-decorators/isMoreThan';

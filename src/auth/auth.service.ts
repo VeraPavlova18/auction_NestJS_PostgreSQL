@@ -1,16 +1,11 @@
-import {
-  Injectable,
-  UnauthorizedException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { SignInCredentialsDto } from './dto/signIn-credential.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './jwt-payload.interface';
-import { SendEmailService } from 'src/mail/sendEmailService';
+import { SendEmailService } from '../mail/sendEmailService';
 import { User } from './user.entity';
 import * as uuidv4 from 'uuid/v4';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -28,7 +23,7 @@ export class AuthService {
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
     return this.userRepository.signUp(authCredentialsDto).then(user =>
       this.sendEmailService.sendConfirmEmail(
-        'pavlova.vera18@gmail.com', // DONT FORGET!!! change to user.email!!!
+        user.email,
         user.firstName,
         `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/auth/confirm/${user.confirmToken}`,
       ),
@@ -50,7 +45,7 @@ export class AuthService {
     }
     await user.save();
     await this.sendEmailService.sendRecoveryEmail(
-      'pavlova.vera18@gmail.com', // DONT FORGET!!! change to user.email!!!
+      user.email,
       user.firstName,
       `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/auth/recovery-pass/${user.confirmToken}`,
     );
@@ -60,7 +55,8 @@ export class AuthService {
     confirmToken: string,
     changePasswordDto: ChangePasswordDto,
   ): Promise<{ accessToken: string }> {
-    const email = await (await this.userRepository.getUser({ confirmToken })).email;
+    const email = await (await this.userRepository.getUser({ confirmToken }))
+      .email;
     await this.userRepository.changePass(confirmToken, changePasswordDto);
     return this.signInAfterChangePass(changePasswordDto, email);
   }
@@ -99,8 +95,10 @@ export class AuthService {
     changePasswordDto: ChangePasswordDto,
     email: string,
   ): Promise<{ accessToken: string }> {
-
-    email = await this.userRepository.validateChangeUserPassword(changePasswordDto, email);
+    email = await this.userRepository.validateChangeUserPassword(
+      changePasswordDto,
+      email,
+    );
     if (!email) {
       throw new UnauthorizedException('Invalid credentials');
     }

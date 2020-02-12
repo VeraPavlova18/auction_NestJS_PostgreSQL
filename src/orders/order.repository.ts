@@ -1,11 +1,15 @@
 import { EntityRepository, Repository, getConnection } from 'typeorm';
-import { Logger, InternalServerErrorException, BadRequestException, NotAcceptableException } from '@nestjs/common';
+import {
+  Logger,
+  InternalServerErrorException,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { User } from 'src/auth/user.entity';
+import { User } from '../auth/user.entity';
 import { OrderStatus } from './order-status.enum';
-import { Bid } from 'src/bids/bid.entity';
-import { Lot } from 'src/lots/lot.entity';
+import { Bid } from '../bids/bid.entity';
+import { Lot } from '../lots/lot.entity';
 
 @EntityRepository(Order)
 export class OrderRepository extends Repository<Order> {
@@ -13,11 +17,11 @@ export class OrderRepository extends Repository<Order> {
 
   async getMaxBidNumber(id: number): Promise<object> {
     return getConnection()
-    .createQueryBuilder()
-    .select('Max(bid.proposedPrice)', 'max')
-    .from(Bid, 'bid')
-    .where('bid.lotId = :lotId', { lotId: id })
-    .getRawOne();
+      .createQueryBuilder()
+      .select('Max(bid.proposedPrice)', 'max')
+      .from(Bid, 'bid')
+      .where('bid.lotId = :lotId', { lotId: id })
+      .getRawOne();
   }
 
   async getMaxBidOfLot(id: number): Promise<object> {
@@ -35,7 +39,7 @@ export class OrderRepository extends Repository<Order> {
       .createQueryBuilder()
       .select('lot')
       .from(Lot, 'lot')
-      .where('lot.id = :id',  { id })
+      .where('lot.id = :id', { id })
       .getOne();
   }
 
@@ -44,7 +48,7 @@ export class OrderRepository extends Repository<Order> {
       .createQueryBuilder()
       .select('bid')
       .from(Bid, 'bid')
-      .where('bid.lotId = :id',  { id })
+      .where('bid.lotId = :id', { id })
       .getOne();
   }
 
@@ -53,12 +57,11 @@ export class OrderRepository extends Repository<Order> {
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
-      .where('user.id = :id',  { id: lot.userId })
+      .where('user.id = :id', { id: lot.userId })
       .getOne();
   }
 
   async getLotCustomer(max: object): Promise<User> {
-
     const maxBid = await getConnection()
       .createQueryBuilder()
       .select('bid')
@@ -67,15 +70,18 @@ export class OrderRepository extends Repository<Order> {
       .getOne();
 
     return getConnection()
-    .createQueryBuilder()
-    .select('user')
-    .from(User, 'user')
-    .where('user.id = :id', {  id: maxBid.userId })
-    .getOne();
-
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where('user.id = :id', { id: maxBid.userId })
+      .getOne();
   }
 
-  async createOrder(user: User, createOrderDto: CreateOrderDto, id: number): Promise<Order> {
+  async createOrder(
+    user: User,
+    createOrderDto: CreateOrderDto,
+    id: number,
+  ): Promise<Order> {
     const maxBid = await this.getMaxBidOfLot(id);
     if (!maxBid) {
       throw new InternalServerErrorException();
@@ -102,14 +108,18 @@ export class OrderRepository extends Repository<Order> {
   async getOrderByLotId(id: number) {
     const maxBid = await this.getMaxBidOfLot(id);
     return getConnection()
-    .createQueryBuilder()
-    .select('order')
-    .from(Order, 'order')
-    .where('order.bidId = :id',  { id: Object(maxBid).id })
-    .getOne();
+      .createQueryBuilder()
+      .select('order')
+      .from(Order, 'order')
+      .where('order.bidId = :id', { id: Object(maxBid).id })
+      .getOne();
   }
 
-  async changeOrderStatus(user: User, orderStatus: OrderStatus, id: number): Promise<void> {
+  async changeOrderStatus(
+    user: User,
+    orderStatus: OrderStatus,
+    id: number,
+  ): Promise<void> {
     const order = await this.getOrderByLotId(id);
     await getConnection()
       .createQueryBuilder()
@@ -124,11 +134,14 @@ export class OrderRepository extends Repository<Order> {
     createOrderDto: CreateOrderDto,
     user: User,
   ): Promise<Order> {
-
     const order = await this.getOrderByLotId(id);
     if (order.status !== 'PENDING') {
-      this.logger.verbose(`User "${user.email}" can't change order with status not equals pending.`);
-      throw new NotAcceptableException('can\'t change lot with status not equals pending.');
+      this.logger.verbose(
+        `User "${user.email}" can't change order with status not equals pending.`,
+      );
+      throw new NotAcceptableException(
+        'can\'t change lot with status not equals pending.',
+      );
     }
     const { arrivalLocation, arrivalType } = createOrderDto;
 

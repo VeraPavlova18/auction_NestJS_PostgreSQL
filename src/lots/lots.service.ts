@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, Logger, NotAcceptableException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  Logger,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LotRepository } from './lot.repository';
@@ -8,7 +13,7 @@ import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { Cron } from '@nestjs/schedule';
 import { LotStatus } from './lot-status.enum';
-import { SendEmailService } from 'src/mail/sendEmailService';
+import { SendEmailService } from '../mail/sendEmailService';
 import { LotIsWinner } from './lotIsWinner.interface';
 
 @Injectable()
@@ -23,23 +28,45 @@ export class LotsService {
 
   @Cron('0 * * * * *')
   async handleCron() {
-    await this.lotRepository.getLotsForChangeStatus(`"startTime" <= now() AND "endTime" > now() AND status = 'PENDING'`)
+    await this.lotRepository
+      .getLotsForChangeStatus(
+        `"startTime" <= now() AND "endTime" > now() AND status = 'PENDING'`,
+      )
       .then(lots => {
-        lots.map(lot => this.lotRepository.changeLotsStatus(LotStatus.IN_PROCESS, `lot.id = :id`, {id: lot.id}));
+        lots.map(lot =>
+          this.lotRepository.changeLotsStatus(
+            LotStatus.IN_PROCESS,
+            `lot.id = :id`,
+            { id: lot.id },
+          ),
+        );
       });
 
-    await this.lotRepository.getLotsForChangeStatus(`"endTime" <= now() AND status != 'CLOSED'`)
+    await this.lotRepository
+      .getLotsForChangeStatus(`"endTime" <= now() AND status != 'CLOSED'`)
       .then(async lots => {
-        await Promise.all(lots.map(lot => this.lotRepository.changeLotsStatus(LotStatus.CLOSED, `lot.id = :id`, {id: lot.id})));
+        await Promise.all(
+          lots.map(lot =>
+            this.lotRepository.changeLotsStatus(
+              LotStatus.CLOSED,
+              `lot.id = :id`,
+              { id: lot.id },
+            ),
+          ),
+        );
 
         if (lots.length > 0) {
           lots.map(async lot => {
             const owner = await this.lotRepository.getLotOwner(lot);
-            const { max: maxBid } = Object(await this.lotRepository.getMaxBidOfLot(lot));
+            const { max: maxBid } = Object(
+              await this.lotRepository.getMaxBidOfLot(lot),
+            );
             if (maxBid) {
-              const ownerOfMaxBid = await this.lotRepository.getOwnerOfMaxBidOfLot(maxBid);
+              const ownerOfMaxBid = await this.lotRepository.getOwnerOfMaxBidOfLot(
+                maxBid,
+              );
               this.sendEmailService.sendEmailToTheBidsWinner(
-                'pavlova.vera18@gmail.com', // DONT FORGET!!! change email ownerOfMaxBid.email!!!
+                ownerOfMaxBid.email,
                 ownerOfMaxBid.firstName,
                 lot.title,
                 maxBid,
@@ -47,13 +74,12 @@ export class LotsService {
               );
             }
             this.sendEmailService.sendEmailToTheLotOwner(
-              'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
+              owner.email,
               owner.firstName,
               lot.title,
               maxBid || lot.curentPrice,
               `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
             );
-
           });
         }
       });
@@ -79,7 +105,7 @@ export class LotsService {
       throw new NotFoundException(`Lot with ID "${id}" not found`);
     }
     if (lot.status === LotStatus.CLOSED) {
-     return this.lotRepository.customizeLotWinner(lot, user);
+      return this.lotRepository.customizeLotWinner(lot, user);
     } else {
       return lot;
     }
@@ -89,8 +115,12 @@ export class LotsService {
     const lot = await this.getLotById(id, user);
 
     if (lot.status !== 'PENDING') {
-      this.logger.verbose(`User "${user.email}" can't delete lot with status not equals pending.`);
-      throw new NotAcceptableException('can\'t delete lot with status not equals pending.');
+      this.logger.verbose(
+        `User "${user.email}" can't delete lot with status not equals pending.`,
+      );
+      throw new NotAcceptableException(
+        'can\'t delete lot with status not equals pending.',
+      );
     }
     await this.lotRepository.delete(lot);
 
@@ -115,8 +145,12 @@ export class LotsService {
     const lot = await this.getLotById(id, user);
 
     if (lot.status !== 'PENDING') {
-      this.logger.verbose(`User "${user.email}" can't change lot with status not equals pending.`);
-      throw new NotAcceptableException('can\'t change lot with status not equals pending.');
+      this.logger.verbose(
+        `User "${user.email}" can't change lot with status not equals pending.`,
+      );
+      throw new NotAcceptableException(
+        'can\'t change lot with status not equals pending.',
+      );
     }
 
     lot.title = title ?? lot.title;

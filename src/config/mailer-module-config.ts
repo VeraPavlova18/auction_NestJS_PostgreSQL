@@ -1,4 +1,4 @@
-import { HandlebarsAdapter, MailerModule } from '@nest-modules/mailer';
+import { MailerModule } from '@nest-modules/mailer';
 
 export const mailerModuleConfig: MailerModule = {
   useFactory: () => ({

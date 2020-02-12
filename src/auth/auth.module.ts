@@ -6,7 +6,7 @@ import { UserRepository } from './user.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
-import { SendEmailService } from 'src/mail/sendEmailService';
+import { SendEmailService } from '../mail/sendEmailService';
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),

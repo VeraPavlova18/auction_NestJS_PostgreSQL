@@ -1,32 +1,34 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { User } from 'src/auth/user.entity';
+import { User } from '../auth/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OrderRepository } from './order.repository';
-import { SendEmailService } from 'src/mail/sendEmailService';
+import { SendEmailService } from '../mail/sendEmailService';
 import { Order } from './order.entity';
 import { OrderStatus } from './order-status.enum';
 
 @Injectable()
-export class OrdersService {private logger = new Logger('BidsService');
+export class OrdersService {
+  private logger = new Logger('BidsService');
 
-constructor(
-  @InjectRepository(OrderRepository)
-  private orderRepository: OrderRepository,
-  private sendEmailService: SendEmailService,
-) {}
+  constructor(
+    @InjectRepository(OrderRepository)
+    private orderRepository: OrderRepository,
+    private sendEmailService: SendEmailService,
+  ) {}
 
   async createOrder(
     user: User,
     createOrderDto: CreateOrderDto,
     id: number,
   ): Promise<Order> {
-    return this.orderRepository.createOrder(user, createOrderDto, id)
+    return this.orderRepository
+      .createOrder(user, createOrderDto, id)
       .then(async order => {
         const lot = await this.orderRepository.getLot(id);
         const owner = await this.orderRepository.getLotOwner(lot);
         this.sendEmailService.sendOrderToTheLotOwner(
-          'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
+          owner.email,
           owner.firstName,
           lot.title,
           `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
@@ -48,11 +50,7 @@ constructor(
     return this.orderRepository.getOrderByLotId(id);
   }
 
-  async updateOrder(
-    id: number,
-    createOrderDto: CreateOrderDto,
-    user: User,
-  ) {
+  async updateOrder(id: number, createOrderDto: CreateOrderDto, user: User) {
     const bid = await this.orderRepository.getBid(id);
     if (user.id !== bid.userId) {
       throw new BadRequestException({
@@ -89,17 +87,18 @@ constructor(
         error: `Failed to change order status by user ${user.email}.  Only lot owner can change order status for SENT`,
       });
     }
-    return this.orderRepository.changeOrderStatus(user, orderStatus, id)
+    return this.orderRepository
+      .changeOrderStatus(user, orderStatus, id)
       .then(async () => {
         const max = await this.orderRepository.getMaxBidNumber(id);
         const customer = await this.orderRepository.getLotCustomer(Object(max));
         this.sendEmailService.sendChangeStatusOfOrderToTheLotCustomer(
-          'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
+          customer.email,
           customer.firstName,
           lot.title,
           `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
         );
-    });
+      });
   }
 
   async changeOrderStatusByCustomer(
@@ -127,31 +126,28 @@ constructor(
         error: `Failed to change order status by user ${user.email}. Only lot customer can change order status for DELIVERED`,
       });
     }
-    return this.orderRepository.changeOrderStatus(user, orderStatus, id)
+    return this.orderRepository
+      .changeOrderStatus(user, orderStatus, id)
       .then(async () => {
-      const lot = await this.orderRepository.getLot(id);
-      const owner = await this.orderRepository.getLotOwner(lot);
-      this.sendEmailService.sendDeliveredEmailToTheLotOwner(
-        'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
-        owner.firstName,
-        lot.title,
-        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-      );
-    })
+        const lot = await this.orderRepository.getLot(id);
+        const owner = await this.orderRepository.getLotOwner(lot);
+        this.sendEmailService.sendDeliveredEmailToTheLotOwner(
+          owner.email,
+          owner.firstName,
+          lot.title,
+          `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+        );
+      })
       .then(async () => {
-      const lot = await this.orderRepository.getLot(id);
-      const max = await this.orderRepository.getMaxBidNumber(id);
-      const customer = await this.orderRepository.getLotCustomer(Object(max));
-      this.sendEmailService.sendDeliveredEmailToTheLotCustomer(
-        'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
-        customer.firstName,
-        lot.title,
-        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-      );
-  });
+        const lot = await this.orderRepository.getLot(id);
+        const max = await this.orderRepository.getMaxBidNumber(id);
+        const customer = await this.orderRepository.getLotCustomer(Object(max));
+        this.sendEmailService.sendDeliveredEmailToTheLotCustomer(
+          customer.email,
+          customer.firstName,
+          lot.title,
+          `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+        );
+      });
   }
-
-  // async getOrderByLotId(user: User, id: number): Promise<Order> {
-  //   return this.orderRepository.getOrder(user, id);
-  // }
 }

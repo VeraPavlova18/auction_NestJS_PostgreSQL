@@ -1,19 +1,31 @@
-import { EntityRepository, Repository, getManager, getConnection } from 'typeorm';
+import {
+  EntityRepository,
+  Repository,
+  getManager,
+  getConnection,
+} from 'typeorm';
 import { User } from '../auth/user.entity';
-import { Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import {
+  Logger,
+  InternalServerErrorException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
 import * as moment from 'moment';
 import { BidCustomer } from './bidCustomer.interface';
-import { Lot } from 'src/lots/lot.entity';
-import { LotStatus } from 'src/lots/lot-status.enum';
+import { Lot } from '../lots/lot.entity';
+import { LotStatus } from '../lots/lot-status.enum';
 
 @EntityRepository(Bid)
 export class BidRepository extends Repository<Bid> {
   private logger = new Logger('BidRepository');
 
   customizeBid(bid: Bid, user: User): BidCustomer {
-    const customer = (bid.userId === user.id) ? `You` : `Customer ${Math.floor(Math.random() * 100000 + 1)}`;
+    const customer =
+      bid.userId === user.id
+        ? `You`
+        : `Customer ${Math.floor(Math.random() * 100000 + 1)}`;
     delete bid.user;
     delete bid.userId;
     return { ...bid, customer } as BidCustomer;
@@ -24,7 +36,7 @@ export class BidRepository extends Repository<Bid> {
       .createQueryBuilder()
       .select('lot')
       .from(Lot, 'lot')
-      .where('lot.id = :id',  { id })
+      .where('lot.id = :id', { id })
       .getOne();
   }
 
@@ -33,7 +45,7 @@ export class BidRepository extends Repository<Bid> {
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
-      .where('user.id = :id',  { id: lot.userId })
+      .where('user.id = :id', { id: lot.userId })
       .getOne();
   }
 
@@ -56,7 +68,7 @@ export class BidRepository extends Repository<Bid> {
             .where('bid.lotId = :lotId', { lotId: id })
             .getRawOne();
           const lot = await transactionalEntityManager.findOne(Lot, id);
-          if (lot.status !== LotStatus.IN_PROCESS)  {
+          if (lot.status !== LotStatus.IN_PROCESS) {
             this.logger.error(
               `Failed to create a bid for lot ${lot.title}(id: ${lot.id}) by user ${user.email}.`,
             );
@@ -67,7 +79,7 @@ export class BidRepository extends Repository<Bid> {
           }
           const { estimatedPrice, curentPrice } = lot;
 
-          if (proposedPrice < curentPrice || proposedPrice > estimatedPrice ) {
+          if (proposedPrice < curentPrice || proposedPrice > estimatedPrice) {
             throw new BadRequestException({
               status: 400,
               error: `proposedPrice: ${proposedPrice} must be equal or greater then lot curentPrice: ${curentPrice} and less or equal then estimatedPrice: ${estimatedPrice}`,

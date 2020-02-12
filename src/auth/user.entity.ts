@@ -9,7 +9,6 @@ import {
 import * as bcript from 'bcrypt';
 import { Lot } from '../lots/lot.entity';
 import { Bid } from '../bids/bid.entity';
-import { IsEmpty } from 'class-validator';
 
 @Entity()
 @Unique(['phone'])

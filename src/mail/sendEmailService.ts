@@ -23,7 +23,13 @@ export class SendEmailService {
     });
   }
 
-  public sendEmailToTheBidsWinner(email, name, lotTitle, price, link = '#'): void {
+  public sendEmailToTheBidsWinner(
+    email,
+    name,
+    lotTitle,
+    price,
+    link = '#',
+  ): void {
     this.mailerService.sendMail({
       to: email,
       from: 'mailer.test000111@gmail.com',
@@ -32,7 +38,13 @@ export class SendEmailService {
     });
   }
 
-  public sendEmailToTheLotOwner(email, name, lotTitle, price, link = '#'): void {
+  public sendEmailToTheLotOwner(
+    email,
+    name,
+    lotTitle,
+    price,
+    link = '#',
+  ): void {
     this.mailerService.sendMail({
       to: email,
       from: 'mailer.test000111@gmail.com',
@@ -50,7 +62,12 @@ export class SendEmailService {
     });
   }
 
-  public sendChangeStatusOfOrderToTheLotCustomer(email, name, lotTitle, link = '#'): void {
+  public sendChangeStatusOfOrderToTheLotCustomer(
+    email,
+    name,
+    lotTitle,
+    link = '#',
+  ): void {
     this.mailerService.sendMail({
       to: email,
       from: 'mailer.test000111@gmail.com',
@@ -60,7 +77,12 @@ export class SendEmailService {
     });
   }
 
-  public sendDeliveredEmailToTheLotOwner(email, name, lotTitle, link = '#'): void {
+  public sendDeliveredEmailToTheLotOwner(
+    email,
+    name,
+    lotTitle,
+    link = '#',
+  ): void {
     this.mailerService.sendMail({
       to: email,
       from: 'mailer.test000111@gmail.com',
@@ -69,7 +91,12 @@ export class SendEmailService {
     });
   }
 
-  public sendDeliveredEmailToTheLotCustomer(email, name, lotTitle, link = '#'): void {
+  public sendDeliveredEmailToTheLotCustomer(
+    email,
+    name,
+    lotTitle,
+    link = '#',
+  ): void {
     this.mailerService.sendMail({
       to: email,
       from: 'mailer.test000111@gmail.com',

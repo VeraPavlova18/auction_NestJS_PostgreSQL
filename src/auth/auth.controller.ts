@@ -4,7 +4,6 @@ import {
   Post,
   Body,
   Get,
-  ParseIntPipe,
   Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -53,9 +52,6 @@ export class AuthController {
     @Param('confirmToken') confirmToken: string,
     @Body(ValidationPipe) changePasswordDto: ChangePasswordDto,
   ): Promise<{ accessToken: string }> {
-    return this.authService.changePassAndLogin(
-      confirmToken,
-      changePasswordDto,
-    );
+    return this.authService.changePassAndLogin(confirmToken, changePasswordDto);
   }
 }

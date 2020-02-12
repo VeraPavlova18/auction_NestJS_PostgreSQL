@@ -7,7 +7,7 @@ import { Logger, InternalServerErrorException } from '@nestjs/common';
 import * as moment from 'moment';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
-import { Bid } from 'src/bids/bid.entity';
+import { Bid } from '../bids/bid.entity';
 import { LotIsWinner } from './lotIsWinner.interface';
 
 @EntityRepository(Lot)
@@ -72,17 +72,17 @@ export class LotRepository extends Repository<Lot> {
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
-      .where('user.id = :id',  { id: lot.userId })
+      .where('user.id = :id', { id: lot.userId })
       .getOne();
   }
 
   async getMaxBidOfLot(lot: Lot): Promise<object> {
     return getConnection()
-    .createQueryBuilder()
-    .select('Max(bid.proposedPrice)', 'max')
-    .from(Bid, 'bid')
-    .where('bid.lotId = :lotId', { lotId: lot.id })
-    .getRawOne();
+      .createQueryBuilder()
+      .select('Max(bid.proposedPrice)', 'max')
+      .from(Bid, 'bid')
+      .where('bid.lotId = :lotId', { lotId: lot.id })
+      .getRawOne();
   }
 
   async getOwnerOfMaxBidOfLot(max: number): Promise<User> {
@@ -90,15 +90,15 @@ export class LotRepository extends Repository<Lot> {
       .createQueryBuilder()
       .select('bid')
       .from(Bid, 'bid')
-      .where('bid.proposedPrice = :max', {max})
+      .where('bid.proposedPrice = :max', { max })
       .getOne();
 
     return getConnection()
-    .createQueryBuilder()
-    .select('user')
-    .from(User, 'user')
-    .where('user.id = :id', {  id: maxBid.userId })
-    .getOne();
+      .createQueryBuilder()
+      .select('user')
+      .from(User, 'user')
+      .where('user.id = :id', { id: maxBid.userId })
+      .getOne();
   }
 
   async changeLotsStatus(
@@ -119,7 +119,7 @@ export class LotRepository extends Repository<Lot> {
       .createQueryBuilder()
       .select('bid')
       .from(Bid, 'bid')
-      .where('bid.userId = :id', {id: user.id})
+      .where('bid.userId = :id', { id: user.id })
       .getMany();
   }
 
@@ -131,7 +131,10 @@ export class LotRepository extends Repository<Lot> {
     if (myBids.length > 0) {
       const myLotsIdFromMyBids = [];
       myBids.map(bid => myLotsIdFromMyBids.push(bid.lotId));
-      query.where('lot.userId = :userId OR lot.id IN (:...ids)', { userId: user.id, ids: myLotsIdFromMyBids });
+      query.where('lot.userId = :userId OR lot.id IN (:...ids)', {
+        userId: user.id,
+        ids: myLotsIdFromMyBids,
+      });
     } else {
       query.where('lot.userId = :userId', { userId: user.id });
     }

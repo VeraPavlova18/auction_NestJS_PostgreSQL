@@ -4,7 +4,7 @@ import { LotsController } from './lots.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LotRepository } from './lot.repository';
 import { AuthModule } from '../auth/auth.module';
-import { SendEmailService } from 'src/mail/sendEmailService';
+import { SendEmailService } from '../mail/sendEmailService';
 
 @Module({
   imports: [TypeOrmModule.forFeature([LotRepository]), AuthModule],

@@ -1,9 +1,20 @@
-import { Controller, UseGuards, Logger, Post, UsePipes, ValidationPipe, Body, ParseIntPipe, Param, Get } from '@nestjs/common';
+import {
+  Controller,
+  UseGuards,
+  Logger,
+  Post,
+  UsePipes,
+  ValidationPipe,
+  Body,
+  ParseIntPipe,
+  Param,
+  Get,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { BidsService } from './bids.service';
 import { CreateBidDto } from './dto/create-bid.dto';
-import { User } from 'src/auth/user.entity';
-import { GetUser } from 'src/auth/get-user.decorator';
+import { User } from '../auth/user.entity';
+import { GetUser } from '../auth/get-user.decorator';
 import { Bid } from './bid.entity';
 import { BidCustomer } from './bidCustomer.interface';
 
@@ -30,5 +41,4 @@ export class BidsController {
   ): Promise<Bid[]> {
     return this.bidsService.getBidsByLotId(user, id);
   }
-
 }

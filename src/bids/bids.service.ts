@@ -2,12 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { AppGateway } from 'src/app.gateway';
-import { User } from 'src/auth/user.entity';
+import { User } from '../auth/user.entity';
 import { BidRepository } from './bid.repository';
 import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
 import { BidCustomer } from './bidCustomer.interface';
-import { SendEmailService } from 'src/mail/sendEmailService';
+import { SendEmailService } from '../mail/sendEmailService';
 
 @Injectable()
 export class BidsService {
@@ -25,20 +25,21 @@ export class BidsService {
     createBidDto: CreateBidDto,
     id: number,
   ): Promise<BidCustomer> {
-    return this.bidRepository.createBid(user, createBidDto, id)
+    return this.bidRepository
+      .createBid(user, createBidDto, id)
       .then(bid => {
-      this.gateway.wss.emit('newBid', bid);
-      return bid;
+        this.gateway.wss.emit('newBid', bid);
+        return bid;
       })
       .then(async bid => {
         const lot = await this.bidRepository.getLot(id);
-        const maxBid  = +bid.proposedPrice;
+        const maxBid = +bid.proposedPrice;
         if (maxBid === lot.estimatedPrice) {
           const owner = await this.bidRepository.getLotOwner(lot);
           const ownerOfMaxBid = user;
 
           this.sendEmailService.sendEmailToTheBidsWinner(
-            'pavlova.vera18@gmail.com', // DONT FORGET!!! change email ownerOfMaxBid.email!!!
+            ownerOfMaxBid.email,
             ownerOfMaxBid.firstName,
             lot.title,
             maxBid,
@@ -46,7 +47,7 @@ export class BidsService {
           );
 
           this.sendEmailService.sendEmailToTheLotOwner(
-            'pavlova.vera18@gmail.com', // DONT FORGET!!! change email owner.email!!!
+            owner.email,
             owner.firstName,
             lot.title,
             maxBid || lot.curentPrice,
