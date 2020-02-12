@@ -12,7 +12,11 @@ import {
   ParseIntPipe,
   Delete,
   Patch,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
 } from '@nestjs/common';
+import { diskStorage } from 'multer';
 import { AuthGuard } from '@nestjs/passport';
 import { LotsService } from './lots.service';
 import { CreateLotDto } from './dto/create-lot.dto';
@@ -22,6 +26,8 @@ import { GetUser } from '../auth/get-user.decorator';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { LotIsWinner } from './lotIsWinner.interface';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { editFileName, imageFileFilter } from 'src/utils/img-uploading.utils';
 
 @Controller('lots')
 @UseGuards(AuthGuard('jwt'))
@@ -32,11 +38,21 @@ export class LotsController {
 
   @Post()
   @UsePipes(ValidationPipe)
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './static/files',
+        filename: editFileName,
+      }),
+      fileFilter: imageFileFilter,
+    }),
+  )
   createLot(
     @Body() createLotDto: CreateLotDto,
     @GetUser() user: User,
+    @UploadedFile() img,
   ): Promise<Lot> {
-    return this.lotsService.createLot(createLotDto, user);
+    return this.lotsService.createLot(createLotDto, user, img);
   }
 
   @Get('/my')

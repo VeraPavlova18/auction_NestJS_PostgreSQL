@@ -85,8 +85,12 @@ export class LotsService {
       });
   }
 
-  async createLot(createLotDto: CreateLotDto, user: User): Promise<Lot> {
-    return this.lotRepository.createLot(createLotDto, user);
+  async createLot(
+    createLotDto: CreateLotDto,
+    user: User,
+    img: globalThis.Express.Multer.File,
+  ): Promise<Lot> {
+    return this.lotRepository.createLot(createLotDto, user, img);
   }
 
   async getMyLots(filterDto: GetMyLotsFilterDto, user: User): Promise<Lot[]> {

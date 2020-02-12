@@ -1,7 +1,7 @@
 const socket = io('http://localhost:3001');
 const tbody = document.getElementById('bidsInfo');
-const lotId = 4
-const BearerToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdmxvdmEyQGdvb2dsZS5jb20iLCJpYXQiOjE1ODA4OTkwODcsImV4cCI6MTU4MDkwMjY4N30.-wlJo6rdaxZPsTlhA0KHC53ykIEwDjin9pt2A_Nn_Hs';
+const lotId = 3
+const BearerToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdmxvdmFAZ29vZ2xlLmNvbSIsImlhdCI6MTU4MTUwNjkwMCwiZXhwIjoxNTgxNTEwNTAwfQ.Pqlfr5J7_XD53gdhSgV-7VXw1oCCRFzuyCbI5t8nOrI';
 
 async function getBids() {
   let resp = await fetch(`http://localhost:3000/lots/${lotId}/bids`, {    

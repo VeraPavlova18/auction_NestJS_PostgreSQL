@@ -21,11 +21,14 @@ export class LotRepository extends Repository<Lot> {
     return { ...lot, isWinner } as LotIsWinner;
   }
 
-  async createLot(createLotDto: CreateLotDto, user: User): Promise<Lot> {
+  async createLot(
+    createLotDto: CreateLotDto,
+    user: User,
+    img: globalThis.Express.Multer.File,
+  ): Promise<Lot> {
     const {
       title,
       description,
-      image,
       startTime,
       endTime,
       curentPrice,
@@ -35,7 +38,10 @@ export class LotRepository extends Repository<Lot> {
     const lot = new Lot();
     lot.title = title;
     lot.description = description;
-    lot.image = image;
+    lot.image = img.path
+      .split('/')
+      .slice(1)
+      .join('/');
     lot.startTime = startTime;
     lot.endTime = endTime;
     lot.curentPrice = curentPrice;

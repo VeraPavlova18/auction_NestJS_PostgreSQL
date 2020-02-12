@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { AppGateway } from 'src/app.gateway';
+import { AppGateway } from '../app.gateway';
 import { User } from '../auth/user.entity';
 import { BidRepository } from './bid.repository';
 import { Bid } from './bid.entity';
