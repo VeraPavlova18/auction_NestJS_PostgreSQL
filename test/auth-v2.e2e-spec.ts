@@ -5,8 +5,6 @@ import { INestApplication, Res } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as supertest from 'supertest';
-import { Repository } from 'typeorm';
-import { User } from '../src/auth/user.entity';
 import { AuthModule } from '../src/auth/auth.module';
 import { AuthCredentialsDto } from '../src/auth/dto/auth-credentials.dto';
 import * as moment from 'moment';
@@ -24,11 +22,7 @@ describe('User', () => {
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      providers: [
-        SendEmailService,
-        AuthService,
-        JwtStrategy,
-      ],
+      providers: [SendEmailService, AuthService, JwtStrategy],
       imports: [
         AuthModule,
         MailerModule.forRootAsync(mailerModuleConfig),
@@ -57,31 +51,48 @@ describe('User', () => {
     await app.init();
   });
 
-  afterEach(async () => {
-    await repository.query(`DELETE FROM "user";`);
-  });
-
   afterAll(async () => {
+    await repository.query(`DELETE FROM "user";`);
     await app.close();
   });
 
+  const user: AuthCredentialsDto = {
+    firstName: 'Test user',
+    lastName: 'Pavlova',
+    email: 'pavlova.vera18@gmail.com',
+    phone: '111111111111',
+    password: 'Qwerty123',
+    birthday: moment('1992-12-19').toDate(),
+  };
+
   describe('POST /auth/signup', () => {
-
-    const user: AuthCredentialsDto = {
-      firstName: 'Test user',
-      lastName: 'Pavlova',
-      email: 'pavlova.vera18@gmail.com',
-      phone: '111111111111',
-      password: 'Qwerty123',
-      birthday: moment('1992-12-19').toDate(),
-    };
-
     it('should create a user in the DB', async () => {
-      await supertest
-        .agent(app.getHttpServer())
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
         .post('/auth/signup')
         .send(user)
         .expect(201);
     });
+  });
+
+  describe('POST /auth/signin', () => {
+    it('should`nt return token', async () => {
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
+        .post('/auth/signin')
+        .send({ email: user.email, password: user.password })
+        .expect(401);
+    });
+
+    // it('should return token', async () => {
+    //   const client = supertest.agent(app.getHttpServer());
+
+    //   await client
+    //     .post('/auth/signin')
+    //     .send({ email: user.email, password: user.password })
+    //     .expect(200);
+    // });
   });
 });
