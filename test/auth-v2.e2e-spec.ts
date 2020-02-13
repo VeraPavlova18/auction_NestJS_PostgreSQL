@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, Res } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as supertest from 'supertest';
@@ -13,7 +13,10 @@ import * as moment from 'moment';
 import { SendEmailService } from '../src/mail/sendEmailService';
 import { mailerModuleConfig } from '../src/config/mailer-module-config';
 import { MailerModule } from '@nest-modules/mailer';
-import { UserRepository } from 'src/auth/user.repository';
+import { UserRepository } from '../src/auth/user.repository';
+import { AuthService } from '../src/auth/auth.service';
+import { JwtStrategy } from '../src/auth/jwt.strategy';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('User', () => {
   let app: INestApplication;
@@ -23,6 +26,8 @@ describe('User', () => {
     const module = await Test.createTestingModule({
       providers: [
         SendEmailService,
+        AuthService,
+        JwtStrategy,
       ],
       imports: [
         AuthModule,
@@ -36,6 +41,13 @@ describe('User', () => {
           database: 'auction_test',
           entities: [__dirname + '/../**/*.entity.{js,ts}'],
           synchronize: Boolean(process.env.TYPEORM_SYNC),
+        }),
+        TypeOrmModule.forFeature([UserRepository]),
+        JwtModule.register({
+          secret: process.env.JWT_SECRET,
+          signOptions: {
+            expiresIn: +process.env.JWT_EXPIN,
+          },
         }),
       ],
     }).compile();
