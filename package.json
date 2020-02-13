@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nodemon",
+    "start:test": "DB_NAME=auction_test nodemon",
     "start:debug": "nodemon --config nodemon-debug.json",
     "start:prod": "node dist/main",
     "lint": "tslint -p tsconfig.json -c tslint.json",

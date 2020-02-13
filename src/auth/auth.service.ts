@@ -36,6 +36,10 @@ export class AuthService {
     user.isconfirm = true;
     user.confirmToken = null;
     await user.save();
+    delete user.password;
+    delete user.salt;
+    delete user.lots;
+    delete user.bids;
     return user;
   }
 
