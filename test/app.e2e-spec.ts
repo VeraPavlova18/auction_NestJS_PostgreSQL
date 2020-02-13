@@ -5,6 +5,6 @@ describe('AppController (e2e)', () => {
   it('/ (GET)', () => {
     return request(app)
       .get('/')
-      .expect(404);
+      .expect(200);
   });
 });

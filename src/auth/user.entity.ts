@@ -6,7 +6,7 @@ import {
   Unique,
   OneToMany,
 } from 'typeorm';
-import * as bcript from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { Lot } from '../lots/lot.entity';
 import { Bid } from '../bids/bid.entity';
 
@@ -61,7 +61,7 @@ export class User extends BaseEntity {
   bids: Bid[];
 
   async validatePassword(password: string): Promise<boolean> {
-    const hash = await bcript.hash(password, this.salt);
+    const hash = await bcrypt.hash(password, this.salt);
     return hash === this.password;
   }
 }
