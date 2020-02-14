@@ -56,13 +56,58 @@ describe('User', () => {
     await app.close();
   });
 
-  const user: AuthCredentialsDto = {
-    firstName: 'Test user',
-    lastName: 'Pavlova',
-    email: 'pavlova.vera18@gmail.com',
-    phone: '111111111111',
+  const user1: AuthCredentialsDto = {
+    firstName: 'Test user1',
+    lastName: 'Pavlova1',
+    email: 'test@test.com',
+    phone: '0991233312',
     password: 'Qwerty123',
-    birthday: moment('1992-12-19').toDate(),
+    birthday: moment('1991-12-19').toDate(),
+  };
+
+  const user2: AuthCredentialsDto = {
+    firstName: 'Test user2',
+    lastName: 'Pavlova2',
+    email: 'test2@test.com',
+    phone: '0991233312',
+    password: 'Qwerty123',
+    birthday: moment('1991-12-19').toDate(),
+  };
+
+  const user3: AuthCredentialsDto = {
+    firstName: 'Test user3',
+    lastName: 'Pavlova3',
+    email: 'test2@test.com',
+    phone: '0661233312',
+    password: 'Qwerty123',
+    birthday: moment('1991-12-19').toDate(),
+  };
+
+  const user4: AuthCredentialsDto = {
+    firstName: 'Test user4',
+    lastName: 'Pavlova4',
+    email: 'test4@test.com',
+    phone: '123',
+    password: 'Qwerty123',
+    birthday: moment('1991-12-19').toDate(),
+  };
+
+  const user5: AuthCredentialsDto = {
+    firstName: 'Test user5',
+    lastName: 'Pavlova4',
+    email: 'test5',
+    phone: '12345',
+    password: 'Qwerty123',
+    birthday: moment('1991-12-19').toDate(),
+  };
+
+  const user6: AuthCredentialsDto = {
+    firstName: 'Test user6',
+    lastName: 'Pavlova6',
+    email: 'test6@email.com',
+    phone: '0661233312',
+    password: 'Qwerty123',
+    birthday: moment('2006-12-19').toDate(),
   };
 
   describe('POST /auth/signup', () => {
@@ -71,19 +116,90 @@ describe('User', () => {
 
       await client
         .post('/auth/signup')
-        .send(user)
+        .send(user1)
         .expect(201);
+    });
+
+    it('should not create a user with duplicate email', async () => {
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
+        .post('/auth/signup')
+        .send(user1)
+        .expect(409)
+        .expect(({ body }) => {
+          expect(body.message).toEqual(`Key (email)=(${user1.email}) already exists.`);
+        });
+    });
+
+    it('should not create a user with duplicate phone', async () => {
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
+        .post('/auth/signup')
+        .send(user2)
+        .expect(409)
+        .expect(({ body }) => {
+          expect(body.message).toEqual(`Key (phone)=(${user2.phone}) already exists.`);
+        });
+    });
+
+    it('should not create a user with phone that is not phone', async () => {
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
+        .post('/auth/signup')
+        .send(user4)
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.message[0].constraints.matches).toEqual(`Invalid phone number`);
+        });
+    });
+
+    it('should not create a user with email that is not email', async () => {
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
+        .post('/auth/signup')
+        .send(user5)
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.message[0].constraints.isEmail).toEqual('email must be an email');
+        });
+    });
+
+    it('should not create a user whose age is < 21', async () => {
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
+        .post('/auth/signup')
+        .send(user6)
+        .expect(400)
+        .expect(({ body }) => {
+          expect(`body.message[0].constraints.maxDate).toEqual('maximal allowed date for birthday is ${moment()
+            .subtract(21, 'years')
+            .toDate()}`);
+        });
     });
   });
 
   describe('POST /auth/signin', () => {
-    it('should`nt return token', async () => {
+    it('should not return token if user not confirmed', async () => {
       const client = supertest.agent(app.getHttpServer());
 
       await client
         .post('/auth/signin')
-        .send({ email: user.email, password: user.password })
+        .send({ email: user1.email, password: user1.password })
         .expect(401);
+    });
+
+    it('should not return token if user not exist', async () => {
+      const client = supertest.agent(app.getHttpServer());
+
+      await client
+        .post('/auth/signin')
+        .send({ email: 'test', password: 'test' })
+        .expect(400);
     });
 
     // it('should return token', async () => {
