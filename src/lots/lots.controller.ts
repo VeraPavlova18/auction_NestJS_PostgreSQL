@@ -27,7 +27,7 @@ import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { LotIsWinner } from './lotIsWinner.interface';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { editFileName, imageFileFilter } from 'src/utils/img-uploading.utils';
+import { editFileName, imageFileFilter } from '../utils/img-uploading.utils';
 
 @Controller('lots')
 @UseGuards(AuthGuard('jwt'))
