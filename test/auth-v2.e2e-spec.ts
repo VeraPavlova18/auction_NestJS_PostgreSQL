@@ -1,20 +1,20 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { INestApplication, Res } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import * as supertest from 'supertest';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../src/auth/auth.module';
-import { AuthCredentialsDto } from '../src/auth/dto/auth-credentials.dto';
-import * as moment from 'moment';
+import { AuthService } from '../src/auth/auth.service';
+import { UserRepository } from '../src/auth/user.repository';
 import { SendEmailService } from '../src/mail/sendEmailService';
 import { mailerModuleConfig } from '../src/config/mailer-module-config';
 import { MailerModule } from '@nest-modules/mailer';
-import { UserRepository } from '../src/auth/user.repository';
-import { AuthService } from '../src/auth/auth.service';
 import { JwtStrategy } from '../src/auth/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
+import { users } from './constants';
+import * as moment from 'moment';
 
 describe('User', () => {
   let app: INestApplication;
@@ -56,67 +56,13 @@ describe('User', () => {
     await app.close();
   });
 
-  const user1: AuthCredentialsDto = {
-    firstName: 'Test user1',
-    lastName: 'Pavlova1',
-    email: 'test@test.com',
-    phone: '0991233312',
-    password: 'Qwerty123',
-    birthday: moment('1991-12-19').toDate(),
-  };
-
-  const user2: AuthCredentialsDto = {
-    firstName: 'Test user2',
-    lastName: 'Pavlova2',
-    email: 'test2@test.com',
-    phone: '0991233312',
-    password: 'Qwerty123',
-    birthday: moment('1991-12-19').toDate(),
-  };
-
-  const user3: AuthCredentialsDto = {
-    firstName: 'Test user3',
-    lastName: 'Pavlova3',
-    email: 'test2@test.com',
-    phone: '0661233312',
-    password: 'Qwerty123',
-    birthday: moment('1991-12-19').toDate(),
-  };
-
-  const user4: AuthCredentialsDto = {
-    firstName: 'Test user4',
-    lastName: 'Pavlova4',
-    email: 'test4@test.com',
-    phone: '123',
-    password: 'Qwerty123',
-    birthday: moment('1991-12-19').toDate(),
-  };
-
-  const user5: AuthCredentialsDto = {
-    firstName: 'Test user5',
-    lastName: 'Pavlova4',
-    email: 'test5',
-    phone: '12345',
-    password: 'Qwerty123',
-    birthday: moment('1991-12-19').toDate(),
-  };
-
-  const user6: AuthCredentialsDto = {
-    firstName: 'Test user6',
-    lastName: 'Pavlova6',
-    email: 'test6@email.com',
-    phone: '0661233312',
-    password: 'Qwerty123',
-    birthday: moment('2006-12-19').toDate(),
-  };
-
   describe('POST /auth/signup', () => {
     it('should create a user in the DB', async () => {
       const client = supertest.agent(app.getHttpServer());
 
       await client
         .post('/auth/signup')
-        .send(user1)
+        .send(users[0])
         .expect(201);
     });
 
@@ -125,10 +71,10 @@ describe('User', () => {
 
       await client
         .post('/auth/signup')
-        .send(user1)
+        .send(users[0])
         .expect(409)
         .expect(({ body }) => {
-          expect(body.message).toEqual(`Key (email)=(${user1.email}) already exists.`);
+          expect(body.message).toEqual(`Key (email)=(${users[0].email}) already exists.`);
         });
     });
 
@@ -137,10 +83,10 @@ describe('User', () => {
 
       await client
         .post('/auth/signup')
-        .send(user2)
+        .send(users[1])
         .expect(409)
         .expect(({ body }) => {
-          expect(body.message).toEqual(`Key (phone)=(${user2.phone}) already exists.`);
+          expect(body.message).toEqual(`Key (phone)=(${users[1].phone}) already exists.`);
         });
     });
 
@@ -149,7 +95,7 @@ describe('User', () => {
 
       await client
         .post('/auth/signup')
-        .send(user4)
+        .send(users[3])
         .expect(400)
         .expect(({ body }) => {
           expect(body.message[0].constraints.matches).toEqual(`Invalid phone number`);
@@ -161,7 +107,7 @@ describe('User', () => {
 
       await client
         .post('/auth/signup')
-        .send(user5)
+        .send(users[4])
         .expect(400)
         .expect(({ body }) => {
           expect(body.message[0].constraints.isEmail).toEqual('email must be an email');
@@ -173,7 +119,7 @@ describe('User', () => {
 
       await client
         .post('/auth/signup')
-        .send(user6)
+        .send(users[5])
         .expect(400)
         .expect(({ body }) => {
           expect(`body.message[0].constraints.maxDate).toEqual('maximal allowed date for birthday is ${moment()
@@ -189,7 +135,7 @@ describe('User', () => {
 
       await client
         .post('/auth/signin')
-        .send({ email: user1.email, password: user1.password })
+        .send({ email: users[0].email, password: users[0].password })
         .expect(401);
     });
 

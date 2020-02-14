@@ -10,7 +10,6 @@ import { AuthCredentialsDto } from './dto/auth-credentials.dto';
 import { SignInCredentialsDto } from './dto/signIn-credential.dto';
 import * as uuidv4 from 'uuid/v4';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { MessageBody } from '@nestjs/websockets';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -41,7 +40,7 @@ export class UserRepository extends Repository<User> {
       if (error.code === '23505') {
         throw new ConflictException(error.detail);
       } else {
-        throw new InternalServerErrorException(MessageBody);
+        throw new InternalServerErrorException();
       }
     }
   }
