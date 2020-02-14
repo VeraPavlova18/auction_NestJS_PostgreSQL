@@ -73,18 +73,19 @@ export class AuthService {
   async signIn(
     signInCredentialsDto: SignInCredentialsDto,
   ): Promise<{ accessToken: string }> {
-    const isConfirm = await this.userRepository.isUserConfirm(
-      signInCredentialsDto,
-    );
-    if (!isConfirm) {
-      throw new UnauthorizedException('Confirm your email address');
-    }
 
     const email = await this.userRepository.validateUserPassword(
       signInCredentialsDto,
     );
     if (!email) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isConfirm = await this.userRepository.isUserConfirm(
+      signInCredentialsDto,
+    );
+    if (!isConfirm) {
+      throw new UnauthorizedException('Confirm your email address');
     }
 
     const payload: JwtPayload = { email };
