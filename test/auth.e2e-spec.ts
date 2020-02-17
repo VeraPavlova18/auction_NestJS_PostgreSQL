@@ -1,54 +1,17 @@
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import * as supertest from 'supertest';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from '../src/auth/auth.module';
-import { AuthService } from '../src/auth/auth.service';
 import { UserRepository } from '../src/auth/user.repository';
-import { SendEmailService } from '../src/mail/sendEmailService';
-import { mailerModuleConfig } from '../src/config/mailer-module-config';
-import { MailerModule } from '@nest-modules/mailer';
-import { JwtStrategy } from '../src/auth/jwt.strategy';
-import { JwtModule } from '@nestjs/jwt';
 import { users } from './constants';
+import { createTestingAuthModule } from './config/testingmodule-config';
 
-describe('User', () => {
+describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let repository: UserRepository;
   let accessToken;
 
-  beforeAll(async () => {
-    const module = await Test.createTestingModule({
-      providers: [SendEmailService, AuthService, JwtStrategy],
-      imports: [
-        AuthModule,
-        MailerModule.forRootAsync(mailerModuleConfig),
-        TypeOrmModule.forRoot({
-          type: process.env.TYPE as any,
-          host: process.env.DB_HOST,
-          port: +process.env.DB_PORT,
-          username: process.env.DB_USER,
-          password: process.env.DB_PASS,
-          database: 'auction_test',
-          entities: [__dirname + '/../**/*.entity.{js,ts}'],
-          synchronize: Boolean(process.env.TYPEORM_SYNC),
-        }),
-        TypeOrmModule.forFeature([UserRepository]),
-        JwtModule.register({
-          secret: process.env.JWT_SECRET,
-          signOptions: {
-            expiresIn: +process.env.JWT_EXPIN,
-          },
-        }),
-      ],
-    }).compile();
-
-    app = module.createNestApplication();
-    repository = module.get('UserRepository');
-    await app.init();
+  beforeAll( async () => {
+    app = (await createTestingAuthModule()).auth;
+    repository = (await createTestingAuthModule()).repository;
   });
 
   afterAll(async () => {

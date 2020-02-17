@@ -21,7 +21,7 @@ export class AuthService {
   ) {}
 
   async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
-    return this.userRepository.signUp(authCredentialsDto)
+    await this.userRepository.signUp(authCredentialsDto)
       .then(user => {
         return this.sendEmailService.sendConfirmEmail(
         user.email,
