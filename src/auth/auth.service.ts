@@ -60,10 +60,9 @@ export class AuthService {
     confirmToken: string,
     changePasswordDto: ChangePasswordDto,
   ): Promise<{ accessToken: string }> {
-    const email = await (await this.userRepository.getUser({ confirmToken }))
-      .email;
+    const user = await this.userRepository.getUser({ confirmToken });
     await this.userRepository.changePass(confirmToken, changePasswordDto);
-    return this.signInAfterChangePass(changePasswordDto, email);
+    return this.signInAfterChangePass(changePasswordDto, user.email);
   }
 
   async goToChangePassForm(confirmToken: string): Promise<void> {

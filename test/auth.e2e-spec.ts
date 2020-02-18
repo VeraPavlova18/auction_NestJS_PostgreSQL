@@ -7,7 +7,6 @@ import { createTestingAuthModule } from './config/testingmodule-config';
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
   let repository: UserRepository;
-  let accessToken;
 
   beforeAll( async () => {
     app = (await createTestingAuthModule()).auth;
@@ -27,6 +26,9 @@ describe('AuthController (e2e)', () => {
         .post('/auth/signup')
         .send(users[0])
         .expect(201);
+
+      const usersExist = await repository.query(`SELECT * FROM "user"`);
+      expect(usersExist[0].email).toEqual(users[0].email);
     });
 
     it('should not create a user with duplicate email', async () => {
@@ -165,8 +167,8 @@ describe('AuthController (e2e)', () => {
 
     describe('Get /auth/confirm/:confirmToken', () => {
       it('should confirmed an exist user', async () => {
-        const client = supertest.agent(app.getHttpServer());
         const usersExist = await repository.query(`SELECT * FROM "user"`);
+        const client = supertest.agent(app.getHttpServer());
         await client
           .get(`/auth/confirm/${usersExist[0].confirmToken}`)
           .expect(200)
@@ -185,7 +187,68 @@ describe('AuthController (e2e)', () => {
         .expect(({ body }) => {
           expect(body.accessToken).not.toBeUndefined();
         });
-      accessToken = query.body.accessToken;
+    });
+  });
+
+  describe('POST /auth/recovery', () => {
+    it('it should send mail to exist user', async () => {
+      const usersExist = await repository.query(`SELECT * FROM "user"`);
+      const client = supertest.agent(app.getHttpServer());
+      await client
+        .post('/auth/recovery')
+        .send({ email: usersExist[0].email })
+        .expect(201);
+
+      expect(usersExist[0].confirmToken).not.toBeUndefined();
+    });
+
+    it('it should not find if user not exist', async () => {
+      const client = supertest.agent(app.getHttpServer());
+      await client
+        .post('/auth/recovery')
+        .send({ email: 'notExistEmail@test.com' })
+        .expect(404);
+    });
+  });
+
+  describe('GET /auth/recovery-pass/:confirmToken', () => {
+    it('it should find exist user', async () => {
+      const usersExist = await repository.query(`SELECT * FROM "user"`);
+      const client = supertest.agent(app.getHttpServer());
+      await client
+        .get(`/auth/recovery-pass/${usersExist[0].confirmToken}`)
+        .expect(200);
+    });
+
+    it('it should not find if user not exist', async () => {
+      const client = supertest.agent(app.getHttpServer());
+      await client
+        .get(`/auth/recovery-pass/123`)
+        .expect(404);
+    });
+  });
+
+  describe('POST /auth/recovery-pass/:confirmToken', () => {
+    it('it should changePass and return token for exist user', async () => {
+      const usersExist = await repository.query(`SELECT * FROM "user"`);
+      const client = supertest.agent(app.getHttpServer());
+      await client
+        .post(`/auth/recovery-pass/${usersExist[0].confirmToken}`)
+        .send({ password: 'Qwerty123456', confirmPassword: 'Qwerty123456' })
+        .expect(201)
+        .expect(async ({ body }) => {
+          expect(body.accessToken).not.toBeUndefined();
+          const usersExistWithNewPass = await repository.query(`SELECT * FROM "user"`);
+          expect(usersExistWithNewPass[0].password).not.toEqual(usersExist[0].password);
+        });
+    });
+
+    it('it should not changePass and return token if user not exist', async () => {
+      const client = supertest.agent(app.getHttpServer());
+      await client
+        .post(`/auth/recovery-pass/123`)
+        .send({ password: 'Qwerty123456', confirmPassword: 'Qwerty123456' })
+        .expect(404);
     });
   });
 });
