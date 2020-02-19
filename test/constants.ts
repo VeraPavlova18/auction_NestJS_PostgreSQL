@@ -3,6 +3,7 @@ dotenv.config();
 
 import * as moment from 'moment';
 import { AuthCredentialsDto } from '../src/auth/dto/auth-credentials.dto';
+import { CreateLotDto } from '../src/lots/dto/create-lot.dto';
 
 export const app = `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`;
 
@@ -62,5 +63,17 @@ export const users: AuthCredentialsDto[] = [
     phone: '0661233312',
     password: 'wrong pass',
     birthday: moment('1991-12-19').toDate(),
+  },
+];
+
+export const lots: CreateLotDto[] = [
+  {
+    image: 'www.test.com/img1.jpg',
+    title: 'title example',
+    description: 'description ex',
+    startTime: moment('2020-02-27').toDate(),
+    endTime:  moment('2020-03-27').toDate(),
+    curentPrice: 5,
+    estimatedPrice: 555,
   },
 ];

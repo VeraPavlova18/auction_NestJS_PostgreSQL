@@ -38,10 +38,10 @@ export class LotRepository extends Repository<Lot> {
     const lot = new Lot();
     lot.title = title;
     lot.description = description;
-    lot.image = img.path
+    lot.image = img ? img.path
       .split('/')
       .slice(1)
-      .join('/');
+      .join('/') : '';
     lot.startTime = startTime;
     lot.endTime = endTime;
     lot.curentPrice = curentPrice;
