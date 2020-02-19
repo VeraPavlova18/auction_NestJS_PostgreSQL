@@ -126,6 +126,14 @@ export class LotsService {
         'can\'t delete lot with status not equals pending.',
       );
     }
+
+    if (lot.userId !== user.id) {
+      this.logger.verbose(
+        `User "${user.email}" can't delete not own lot.`,
+      );
+      throw new NotFoundException(`Lot with ID "${id}" not found`);
+    }
+
     await this.lotRepository.delete(lot);
 
     this.logger.verbose(`User "${user.email}" deleted lot with ID "${id}".`);
