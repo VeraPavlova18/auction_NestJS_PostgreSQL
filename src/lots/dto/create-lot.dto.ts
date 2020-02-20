@@ -11,9 +11,6 @@ export class CreateLotDto {
   description: string;
 
   @IsNotEmpty()
-  image: string;
-
-  @IsNotEmpty()
   @IsDate()
   @MinDate(moment().toDate())
   @Type(() => Date)

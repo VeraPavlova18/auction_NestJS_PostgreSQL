@@ -39,7 +39,7 @@ export class LotsController {
   @Post()
   @UsePipes(ValidationPipe)
   @UseInterceptors(
-    FileInterceptor('image', {
+    FileInterceptor('img', {
       storage: diskStorage({
         destination: './static/files',
         filename: editFileName,

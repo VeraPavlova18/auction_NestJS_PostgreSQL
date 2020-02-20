@@ -38,10 +38,6 @@ export class LotRepository extends Repository<Lot> {
     const lot = new Lot();
     lot.title = title;
     lot.description = description;
-    lot.image = img ? img.path
-      .split('/')
-      .slice(1)
-      .join('/') : '';
     lot.startTime = startTime;
     lot.endTime = endTime;
     lot.curentPrice = curentPrice;
@@ -49,6 +45,10 @@ export class LotRepository extends Repository<Lot> {
     lot.status = LotStatus.PENDING;
     lot.createdAt = moment().toDate();
     lot.user = user;
+    lot.image = img ? img.path
+      .split('/')
+      .slice(1)
+      .join('/') : '';
 
     try {
       await lot.save();

@@ -147,7 +147,6 @@ export class LotsService {
     const {
       title,
       description,
-      image,
       startTime,
       endTime,
       curentPrice,
@@ -167,7 +166,6 @@ export class LotsService {
 
     lot.title = title ?? lot.title;
     lot.description = description ?? lot.description;
-    lot.image = image ?? lot.image;
     lot.startTime = startTime ?? lot.startTime;
     lot.endTime = endTime ?? lot.endTime;
     lot.curentPrice = curentPrice ?? lot.curentPrice;
