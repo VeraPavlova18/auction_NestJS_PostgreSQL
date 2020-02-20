@@ -76,7 +76,6 @@ export const users: AuthCredentialsDto[] = [
 
 export const lots: CreateLotDto[] = [
   {
-    image: 'www.test.com/img1.jpg',
     title: 'title example1',
     description: 'description ex1',
     startTime: moment('2020-02-27').toDate(),
@@ -85,7 +84,6 @@ export const lots: CreateLotDto[] = [
     estimatedPrice: 555,
   },
   {
-    image: 'www.test.com/img1.jpg',
     title: 'title example2',
     description: 'description ex2',
     startTime: moment('2020-04-27').toDate(),
@@ -94,7 +92,6 @@ export const lots: CreateLotDto[] = [
     estimatedPrice: 555,
   },
   {
-    image: 'www.test.com/img1.jpg',
     title: 'title example3',
     description: 'description ex3',
     startTime: moment('2019-02-27').toDate(),
@@ -103,7 +100,6 @@ export const lots: CreateLotDto[] = [
     estimatedPrice: 555,
   },
   {
-    image: 'www.test.com/img1.jpg',
     title: 'title example4',
     description: 'description ex4',
     startTime: moment('2020-02-27').toDate(),
@@ -112,7 +108,6 @@ export const lots: CreateLotDto[] = [
     estimatedPrice: 5,
   },
   {
-    image: 'www.test.com/img1.jpg',
     title: 'title example5',
     description: 'description ex5',
     startTime: moment('2020-02-27').toDate(),
@@ -121,7 +116,6 @@ export const lots: CreateLotDto[] = [
     estimatedPrice: 555,
   },
   {
-    image: 'www.test.com/img6.jpg',
     title: 'title example6',
     description: 'description ex6',
     startTime: moment('2020-03-10').toDate(),

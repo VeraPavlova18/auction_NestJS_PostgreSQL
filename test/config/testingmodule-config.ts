@@ -14,10 +14,12 @@ import { UserRepository } from '../../src/auth/user.repository';
 import { typeOrmTestConfig } from './typeorm-test-config';
 import { BidsModule } from '../../src/bids/bids.module';
 import { LotRepository } from '../../src/lots/lot.repository';
+import { BidRepository } from '../../src/bids/bid.repository';
 
 let app;
 let authRepository;
 let lotRepository;
+let bidRepository;
 
 export async function createTestingAppModule() {
   if (!app) {
@@ -30,7 +32,7 @@ export async function createTestingAppModule() {
         MailerModule.forRootAsync(mailerModuleConfig),
         AuthModule,
         LotsModule,
-        // BidsModule,
+        BidsModule,
         OrdersModule,
       ],
     }).compile();
@@ -38,8 +40,9 @@ export async function createTestingAppModule() {
     app = module.createNestApplication();
     authRepository = await module.get<UserRepository>(UserRepository);
     lotRepository = await module.get<LotRepository>(LotRepository);
+    bidRepository = await module.get<BidRepository>(BidRepository);
     await app.init();
   }
 
-  return { app, authRepository, lotRepository };
+  return { app, authRepository, lotRepository, bidRepository };
 }
