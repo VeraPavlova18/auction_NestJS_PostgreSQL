@@ -3,9 +3,9 @@ import { createTestingAppModule } from './config/testingmodule-config';
 import { LotRepository } from '../src/lots/lot.repository';
 import { BidRepository } from '../src/bids/bid.repository';
 import { deleteFromTables } from './utils/deleteFromTables';
-import { createTokens, createLots, createUsers } from './utils/createUsers';
+import { createTokens, createLots, createUsers } from './utils/createData';
 
-describe('LotsController (e2e)', () => {
+describe('BidsController (e2e)', () => {
   let bidRepository: BidRepository;
   let lotRepository: LotRepository;
   let userRepository: UserRepository;

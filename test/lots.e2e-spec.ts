@@ -3,7 +3,7 @@ import { users, lots } from './constants';
 import { createTestingAppModule } from './config/testingmodule-config';
 import { LotRepository } from '../src/lots/lot.repository';
 import { deleteFromTables } from './utils/deleteFromTables';
-import { createUsers, createTokens } from './utils/createUsers';
+import { createUsers, createTokens } from './utils/createData';
 
 describe('LotsController (e2e)', () => {
   let lotRepository: LotRepository;

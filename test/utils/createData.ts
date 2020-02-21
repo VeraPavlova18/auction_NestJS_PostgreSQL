@@ -44,3 +44,26 @@ export async function createLots(client, accessToken1, accessToken2, lotReposito
 
   return { lotsExist };
 }
+
+export async function createBids(client, accessToken1, accessToken2, lotsExist, bidRepository) {
+  // create bid1 in lot1 for user1
+  await client.post(`/lots/${lotsExist[0].id}/bids`).set('Authorization', `Bearer ${accessToken1}`)
+    .send({ proposedPrice: 25 });
+
+  // create bid2 in lot1 for user1
+  await client.post(`/lots/${lotsExist[0].id}/bids`).set('Authorization', `Bearer ${accessToken1}`)
+    .send({ proposedPrice: 26 });
+
+  // create bid3 in lot1 for user2
+  await client.post(`/lots/${lotsExist[0].id}/bids`).set('Authorization', `Bearer ${accessToken2}`)
+    .send({ proposedPrice: 27 });
+
+  // create bid1 in lot2 for user2
+  await client.post(`/lots/${lotsExist[1].id}/bids`).set('Authorization', `Bearer ${accessToken2}`)
+  .send({ proposedPrice: 24 });
+
+  // get array of bids
+  const bidsExist = await bidRepository.query(`SELECT * FROM "bid"`);
+
+  return { bidsExist };
+}

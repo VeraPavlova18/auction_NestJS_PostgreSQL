@@ -82,8 +82,26 @@ export class OrderRepository extends Repository<Order> {
     createOrderDto: CreateOrderDto,
     id: number,
   ): Promise<Order> {
+    const lot = await this.getLot(id);
+    if (lot.status !== 'CLOSED') {
+      this.logger.verbose(
+        `User "${user.email}" can't create order for lot with status not equals CLOSED.`,
+      );
+      throw new NotAcceptableException(
+        'can\'t create order for lot with status not equals CLOSED',
+      );
+    }
+    const isOrderExist = await this.getOrderByLotId(id);
+    if (isOrderExist) {
+      throw new InternalServerErrorException();
+    }
     const maxBid = await this.getMaxBidOfLot(id);
     if (!maxBid) {
+      throw new InternalServerErrorException();
+    }
+    const max = await this.getMaxBidNumber(id);
+    const customer = await this.getLotCustomer(Object(max));
+    if (user.id !== customer.id) {
       throw new InternalServerErrorException();
     }
     const { arrivalLocation, arrivalType } = createOrderDto;

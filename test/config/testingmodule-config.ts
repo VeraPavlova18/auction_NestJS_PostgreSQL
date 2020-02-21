@@ -1,28 +1,30 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import { TestingModule, Test } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { AuthModule } from '../../src/auth/auth.module';
-import { LotsModule } from '../../src/lots/lots.module';
-import { OrdersModule } from '../../src/orders/orders.module';
 import * as path from 'path';
-import { mailerModuleConfig } from '../../src/config/mailer-module-config';
-import { MailerModule } from '@nest-modules/mailer';
-import { UserRepository } from '../../src/auth/user.repository';
-import { typeOrmTestConfig } from './typeorm-test-config';
-import { BidsModule } from '../../src/bids/bids.module';
-import { LotRepository } from '../../src/lots/lot.repository';
-import { BidRepository } from '../../src/bids/bid.repository';
 import supertest = require('supertest');
 import { INestApplication } from '@nestjs/common';
+import { TestingModule, Test } from '@nestjs/testing';
+import { typeOrmTestConfig } from './typeorm-test-config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { mailerModuleConfig } from '../../src/config/mailer-module-config';
+import { MailerModule } from '@nest-modules/mailer';
+import { AuthModule } from '../../src/auth/auth.module';
+import { LotsModule } from '../../src/lots/lots.module';
+import { BidsModule } from '../../src/bids/bids.module';
+import { OrdersModule } from '../../src/orders/orders.module';
+import { UserRepository } from '../../src/auth/user.repository';
+import { LotRepository } from '../../src/lots/lot.repository';
+import { BidRepository } from '../../src/bids/bid.repository';
+import { OrderRepository } from '../../src/orders/order.repository';
 
 let app: INestApplication;
 let client;
 let authRepository;
 let lotRepository;
 let bidRepository;
+let orderRepository;
 
 export async function createTestingAppModule() {
   if (!app) {
@@ -44,9 +46,10 @@ export async function createTestingAppModule() {
     authRepository = await module.get<UserRepository>(UserRepository);
     lotRepository = await module.get<LotRepository>(LotRepository);
     bidRepository = await module.get<BidRepository>(BidRepository);
+    orderRepository = await module.get<OrderRepository>(OrderRepository);
     await app.init();
     client = supertest.agent(app.getHttpServer());
   }
 
-  return { app, client, authRepository, lotRepository, bidRepository };
+  return { app, client, authRepository, lotRepository, bidRepository, orderRepository };
 }
