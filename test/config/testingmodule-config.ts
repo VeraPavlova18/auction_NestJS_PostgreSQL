@@ -15,8 +15,11 @@ import { typeOrmTestConfig } from './typeorm-test-config';
 import { BidsModule } from '../../src/bids/bids.module';
 import { LotRepository } from '../../src/lots/lot.repository';
 import { BidRepository } from '../../src/bids/bid.repository';
+import supertest = require('supertest');
+import { INestApplication } from '@nestjs/common';
 
-let app;
+let app: INestApplication;
+let client;
 let authRepository;
 let lotRepository;
 let bidRepository;
@@ -42,7 +45,8 @@ export async function createTestingAppModule() {
     lotRepository = await module.get<LotRepository>(LotRepository);
     bidRepository = await module.get<BidRepository>(BidRepository);
     await app.init();
+    client = supertest.agent(app.getHttpServer());
   }
 
-  return { app, authRepository, lotRepository, bidRepository };
+  return { app, client, authRepository, lotRepository, bidRepository };
 }

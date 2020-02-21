@@ -1,38 +1,34 @@
-import { INestApplication } from '@nestjs/common';
-import * as supertest from 'supertest';
 import { UserRepository } from '../src/auth/user.repository';
 import { users } from './constants';
 import { createTestingAppModule } from './config/testingmodule-config';
+import { deleteFromTables } from './utils/deleteFromTables';
 
 describe('AuthController (e2e)', () => {
-  let app: INestApplication;
-  let repository: UserRepository;
+  let userRepository: UserRepository;
+  let client;
 
   beforeAll(async () => {
-    app = (await createTestingAppModule()).app;
-    repository = (await createTestingAppModule()).authRepository;
+    const init = await createTestingAppModule();
+    client = init.client;
+    userRepository = init.authRepository;
   });
 
   afterAll(async () => {
-    await repository.query(`DELETE FROM "user";`);
+    await deleteFromTables({user: userRepository});
   });
 
   describe('POST /auth/signup', () => {
     it('should create a user in the DB', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signup')
         .send(users[0])
         .expect(201);
 
-      const usersExist = await repository.query(`SELECT * FROM "user"`);
+      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
       expect(usersExist[0].email).toEqual(users[0].email);
     });
 
     it('should not create a user with duplicate email', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signup')
         .send(users[0])
@@ -45,8 +41,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not create a user with duplicate phone', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signup')
         .send(users[1])
@@ -59,8 +53,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not create a user with phone that is not phone', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signup')
         .send(users[3])
@@ -73,8 +65,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not create a user with email that is not email', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signup')
         .send(users[4])
@@ -87,8 +77,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not create a user with a password that does not match dto', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signup')
         .send(users[6])
@@ -101,8 +89,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not create a user whose age is < 21', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signup')
         .send(users[5])
@@ -117,8 +103,6 @@ describe('AuthController (e2e)', () => {
 
   describe('POST /auth/signin', () => {
     it('should not return token if user not confirmed', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signin')
         .send({ email: users[0].email, password: users[0].password })
@@ -129,8 +113,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not return token if user not exist', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signin')
         .send({ email: users[2].email, password: users[2].password })
@@ -141,8 +123,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not return token if user password is wrong', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signin')
         .send({ email: users[0].email, password: 'Wrongpass123' })
@@ -153,8 +133,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not return token if user email is not email', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signin')
         .send({ email: 'test', password: users[2].password })
@@ -167,8 +145,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should not return token if user password does not match dto', async () => {
-      const client = supertest.agent(app.getHttpServer());
-
       await client
         .post('/auth/signin')
         .send({ email: users[6].email, password: users[6].password })
@@ -182,8 +158,7 @@ describe('AuthController (e2e)', () => {
 
     describe('Get /auth/confirm/:confirmToken', () => {
       it('should confirmed an exist user', async () => {
-        const usersExist = await repository.query(`SELECT * FROM "user"`);
-        const client = supertest.agent(app.getHttpServer());
+        const usersExist = await userRepository.query(`SELECT * FROM "user"`);
         await client
           .get(`/auth/confirm/${usersExist[0].confirmToken}`)
           .expect(200)
@@ -194,7 +169,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('should return token for exist user', async () => {
-      const client = supertest.agent(app.getHttpServer());
       await client
         .post('/auth/signin')
         .send({ email: users[0].email, password: users[0].password })
@@ -207,8 +181,7 @@ describe('AuthController (e2e)', () => {
 
   describe('POST /auth/recovery', () => {
     it('it should send mail to exist user', async () => {
-      const usersExist = await repository.query(`SELECT * FROM "user"`);
-      const client = supertest.agent(app.getHttpServer());
+      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
       await client
         .post('/auth/recovery')
         .send({ email: usersExist[0].email })
@@ -218,7 +191,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('it should not find if user not exist', async () => {
-      const client = supertest.agent(app.getHttpServer());
       await client
         .post('/auth/recovery')
         .send({ email: 'notExistEmail@test.com' })
@@ -228,30 +200,27 @@ describe('AuthController (e2e)', () => {
 
   describe('GET /auth/recovery-pass/:confirmToken', () => {
     it('it should find exist user', async () => {
-      const usersExist = await repository.query(`SELECT * FROM "user"`);
-      const client = supertest.agent(app.getHttpServer());
+      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
       await client
         .get(`/auth/recovery-pass/${usersExist[0].confirmToken}`)
         .expect(200);
     });
 
     it('it should not find if user not exist', async () => {
-      const client = supertest.agent(app.getHttpServer());
       await client.get(`/auth/recovery-pass/123`).expect(404);
     });
   });
 
   describe('POST /auth/recovery-pass/:confirmToken', () => {
     it('it should changePass and return token for exist user', async () => {
-      const usersExist = await repository.query(`SELECT * FROM "user"`);
-      const client = supertest.agent(app.getHttpServer());
+      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
       await client
         .post(`/auth/recovery-pass/${usersExist[0].confirmToken}`)
         .send({ password: 'Qwerty123456', confirmPassword: 'Qwerty123456' })
         .expect(201)
         .expect(async ({ body }) => {
           expect(body.accessToken).not.toBeUndefined();
-          const usersExistWithNewPass = await repository.query(
+          const usersExistWithNewPass = await userRepository.query(
             `SELECT * FROM "user"`,
           );
           expect(usersExistWithNewPass[0].password).not.toEqual(
@@ -261,7 +230,6 @@ describe('AuthController (e2e)', () => {
     });
 
     it('it should not changePass and return token if user not exist', async () => {
-      const client = supertest.agent(app.getHttpServer());
       await client
         .post(`/auth/recovery-pass/123`)
         .send({ password: 'Qwerty123456', confirmPassword: 'Qwerty123456' })

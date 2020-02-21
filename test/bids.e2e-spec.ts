@@ -1,14 +1,11 @@
-import { INestApplication } from '@nestjs/common';
-import * as supertest from 'supertest';
 import { UserRepository } from '../src/auth/user.repository';
 import { users, lots } from './constants';
 import { createTestingAppModule } from './config/testingmodule-config';
 import { LotRepository } from '../src/lots/lot.repository';
-import * as moment from 'moment';
 import { BidRepository } from '../src/bids/bid.repository';
+import { deleteFromTables } from './utils/deleteFromTables';
 
 describe('LotsController (e2e)', () => {
-  let app: INestApplication;
   let bidRepository: BidRepository;
   let lotRepository: LotRepository;
   let userRepository: UserRepository;
@@ -16,23 +13,22 @@ describe('LotsController (e2e)', () => {
   let accessToken;
   let accessToken2;
   let lotsExist;
+  let client;
 
   beforeAll(async () => {
-    app = (await createTestingAppModule()).app;
-    bidRepository = (await createTestingAppModule()).bidRepository;
-    lotRepository = (await createTestingAppModule()).lotRepository;
-    userRepository = (await createTestingAppModule()).authRepository;
+    const init = await createTestingAppModule();
+    client = init.client;
+    bidRepository = init.bidRepository;
+    lotRepository = init.lotRepository;
+    userRepository = init.authRepository;
   });
 
   afterAll(async () => {
-    await bidRepository.query(`DELETE FROM "bid";`);
-    await lotRepository.query(`DELETE FROM "lot";`);
-    await userRepository.query(`DELETE FROM "user";`);
+    await deleteFromTables({bid: bidRepository, lot: lotRepository, user: userRepository});
   });
 
   describe(`POST /lots/id/bids`, () => {
     it('should not create a bid for unauthorized user in the DB', async () => {
-      const client = supertest.agent(app.getHttpServer());
 
       // create 1 user and token1
       await client.post('/auth/signup').send(users[0]);
@@ -62,25 +58,36 @@ describe('LotsController (e2e)', () => {
         .expect(401);
     });
 
-    // it('should create a bid for authorization user1 in the DB', async () => {
-    //   const client = supertest.agent(app.getHttpServer());
+    it('should create a bid for authorization user1 in the DB', async () => {
 
-    //   await lotRepository.query(`UPDATE "lot" SET "status" = 'IN_PROCESS'`);
-    //   lotsExist = await lotRepository.query(`SELECT * FROM "lot"`);
-    //   console.log(lotsExist[0].id)
+      await lotRepository.query(`UPDATE "lot" SET "status" = 'IN_PROCESS'`);
+      lotsExist = await lotRepository.query(`SELECT * FROM "lot"`);
 
-    //   await client
-    //     .post(`/lots/${lotsExist[0].id}/bids`)
-    //     .set('Authorization', `Bearer ${accessToken}`)
-    //     .send({ proposedPrice: 25 })
-    //     .expect(201);
+      await client
+        .post(`/lots/${lotsExist[0].id}/bids`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ proposedPrice: 25 })
+        .expect(201);
 
-    //   // const bidsExist = await bidRepository.query(`SELECT * FROM "bid"`);
-    //   // console.log(bidsExist);
-    //   // expect(bidsExist[0].title).toEqual(lots[0].title);
-    //   // expect(lotsExist[0].description).toEqual(lots[0].description);
-    //   // expect(lotsExist[0].userId).toEqual(usersExist[0].id);
-    // });
+      const bidsExist = await bidRepository.query(`SELECT * FROM "bid"`);
+      expect(bidsExist[0].lotId).toEqual(lotsExist[0].id);
+      expect(bidsExist[0].proposedPrice).toEqual(25);
+    });
+  });
+
+  describe(`GET /lots/id/bids`, () => {
+    it('should not return bids for a non-autorization user', async () => {
+      await client
+        .get(`/lots/${lotsExist[0].id}/bids`)
+        .expect(401);
+    });
+
+    it('should return bids for authorization user1', async () => {
+      await client
+        .get(`/lots/${lotsExist[0].id}/bids`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+    });
   });
 
 });
