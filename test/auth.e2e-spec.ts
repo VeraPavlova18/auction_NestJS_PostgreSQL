@@ -6,6 +6,7 @@ import { deleteFromTables } from './utils/deleteFromTables';
 describe('AuthController (e2e)', () => {
   let userRepository: UserRepository;
   let client;
+  let usersExist;
 
   beforeAll(async () => {
     const init = await createTestingAppModule();
@@ -24,7 +25,7 @@ describe('AuthController (e2e)', () => {
         .send(users[0])
         .expect(201);
 
-      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
+      usersExist = await userRepository.query(`SELECT * FROM "user"`);
       expect(usersExist[0].email).toEqual(users[0].email);
     });
 
@@ -158,7 +159,6 @@ describe('AuthController (e2e)', () => {
 
     describe('Get /auth/confirm/:confirmToken', () => {
       it('should confirmed an exist user', async () => {
-        const usersExist = await userRepository.query(`SELECT * FROM "user"`);
         await client
           .get(`/auth/confirm/${usersExist[0].confirmToken}`)
           .expect(200)
@@ -181,7 +181,6 @@ describe('AuthController (e2e)', () => {
 
   describe('POST /auth/recovery', () => {
     it('it should send mail to exist user', async () => {
-      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
       await client
         .post('/auth/recovery')
         .send({ email: usersExist[0].email })
@@ -200,7 +199,7 @@ describe('AuthController (e2e)', () => {
 
   describe('GET /auth/recovery-pass/:confirmToken', () => {
     it('it should find exist user', async () => {
-      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
+      usersExist = await userRepository.query(`SELECT * FROM "user"`);
       await client
         .get(`/auth/recovery-pass/${usersExist[0].confirmToken}`)
         .expect(200);
@@ -213,7 +212,6 @@ describe('AuthController (e2e)', () => {
 
   describe('POST /auth/recovery-pass/:confirmToken', () => {
     it('it should changePass and return token for exist user', async () => {
-      const usersExist = await userRepository.query(`SELECT * FROM "user"`);
       await client
         .post(`/auth/recovery-pass/${usersExist[0].confirmToken}`)
         .send({ password: 'Qwerty123456', confirmPassword: 'Qwerty123456' })
