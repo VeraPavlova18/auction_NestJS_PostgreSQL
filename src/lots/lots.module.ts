@@ -7,10 +7,11 @@ import { AuthModule } from '../auth/auth.module';
 import { SendEmailService } from '../mail/sendEmailService';
 import { LotsQueries } from './lots.queries';
 import { BidsQueries } from '../bids/bids.queries';
+import { UsersQueries } from '../auth/users.queries';
 
 @Module({
   imports: [TypeOrmModule.forFeature([LotRepository]), AuthModule],
   controllers: [LotsController],
-  providers: [LotsService, SendEmailService, LotsQueries, BidsQueries],
+  providers: [LotsService, SendEmailService, LotsQueries, BidsQueries, UsersQueries],
 })
 export class LotsModule {}

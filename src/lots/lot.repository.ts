@@ -67,28 +67,6 @@ export class LotRepository extends Repository<Lot> {
     return lot;
   }
 
-  async getLotOwner(lot: Lot): Promise<User> {
-    return getConnection()
-      .createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .where('user.id = :id', { id: lot.userId })
-      .getOne();
-  }
-
-  async changeLotsStatus(
-    lotStatus: LotStatus,
-    condition: string,
-    params: object,
-  ): Promise<void> {
-    await getConnection()
-      .createQueryBuilder()
-      .update(Lot)
-      .set({ status: lotStatus })
-      .where(condition, params)
-      .execute();
-  }
-
   async getMyBids(user: User): Promise<Bid[]> {
     return await getConnection()
       .createQueryBuilder()

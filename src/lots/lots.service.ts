@@ -17,6 +17,7 @@ import { SendEmailService } from '../mail/sendEmailService';
 import { LotIsWinner } from './lotIsWinner.interface';
 import { LotsQueries } from './lots.queries';
 import { BidsQueries } from '../bids/bids.queries';
+import { UsersQueries } from '../auth/users.queries';
 
 @Injectable()
 export class LotsService {
@@ -28,6 +29,7 @@ export class LotsService {
     private sendEmailService: SendEmailService,
     private lotsQueries: LotsQueries,
     private bidsQueries: BidsQueries,
+    private usersQueries: UsersQueries,
   ) {}
 
   @Cron('0 * * * * *')
@@ -38,7 +40,7 @@ export class LotsService {
       )
       .then(lots => {
         lots.map(lot =>
-          this.lotRepository.changeLotsStatus(
+          this.lotsQueries.changeLotsStatus(
             LotStatus.IN_PROCESS,
             `lot.id = :id`,
             { id: lot.id },
@@ -51,7 +53,7 @@ export class LotsService {
       .then(async lots => {
         await Promise.all(
           lots.map(lot =>
-            this.lotRepository.changeLotsStatus(
+            this.lotsQueries.changeLotsStatus(
               LotStatus.CLOSED,
               `lot.id = :id`,
               { id: lot.id },
@@ -61,7 +63,7 @@ export class LotsService {
 
         if (lots.length > 0) {
           lots.map(async lot => {
-            const owner = await this.lotRepository.getLotOwner(lot);
+            const owner = await this.usersQueries.getLotOwner(lot);
             const { max: maxBid } = Object(
               await this.bidsQueries.getPriceFromMaxBidOfLot(lot),
             );
