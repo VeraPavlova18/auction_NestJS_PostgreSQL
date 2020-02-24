@@ -72,6 +72,14 @@ export const users: AuthCredentialsDto[] = [
     password: 'Qwerty12345',
     birthday: moment('1991-12-19').toDate(),
   },
+  {
+    firstName: 'Test user8',
+    lastName: 'Pavlova8',
+    email: 'test8@email.com',
+    phone: '0997777777',
+    password: 'Qwerty12346',
+    birthday: moment('1990-12-19').toDate(),
+  },
 ];
 
 export const lots: CreateLotDto[] = [

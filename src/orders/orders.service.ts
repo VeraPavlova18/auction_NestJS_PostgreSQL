@@ -40,8 +40,8 @@ export class OrdersService {
   async getOrderByLotId(user: User, id: number) {
     const lot = await this.orderRepository.getLot(id);
     const owner = await this.orderRepository.getLotOwner(lot);
-    const bid = await this.orderRepository.getBid(id);
-    if (user.id !== owner.id || user.id !== bid.userId) {
+    const bidMax = await Object(this.orderRepository.getMaxBidOfLot(id));
+    if (user.id !== owner.id && user.id !== bidMax.userId) {
       throw new BadRequestException({
         status: 400,
         error: `Failed to get order by user ${user.email}.`,
@@ -51,8 +51,8 @@ export class OrdersService {
   }
 
   async updateOrder(id: number, createOrderDto: CreateOrderDto, user: User) {
-    const bid = await this.orderRepository.getBid(id);
-    if (user.id !== bid.userId) {
+    const bidMax = await Object(this.orderRepository.getMaxBidOfLot(id));
+    if (user.id !== bidMax.userId) {
       throw new BadRequestException({
         status: 400,
         error: `Failed to get order by user ${user.email}.`,
@@ -106,7 +106,7 @@ export class OrdersService {
     orderStatus: OrderStatus,
     id: number,
   ): Promise<void> {
-    const bid = await this.orderRepository.getBid(id);
+    const bidMax = await Object(this.orderRepository.getMaxBidOfLot(id));
     const order = await this.orderRepository.getOrderByLotId(id);
     if (order.status !== 'SENT') {
       this.logger.error(
@@ -117,7 +117,7 @@ export class OrdersService {
         error: `Failed to change order status by user ${user.email}. Order status must to be in "SENT"`,
       });
     }
-    if (user.id !== bid.userId) {
+    if (user.id !== bidMax.userId) {
       this.logger.error(
         `Failed to change order status by user ${user.email}. Only lot customer can change order status for DELIVERED`,
       );

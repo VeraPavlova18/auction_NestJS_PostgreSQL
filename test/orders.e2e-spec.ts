@@ -14,6 +14,7 @@ describe('OrdersController (e2e)', () => {
   let orderRepository: OrderRepository;
   let accessToken1;
   let accessToken2;
+  let accessToken3;
   let lotsExist;
   let client;
   let bidsExist;
@@ -30,6 +31,7 @@ describe('OrdersController (e2e)', () => {
     await createUsers(client, userRepository);
     accessToken1 = (await createTokens(client)).accessToken1;
     accessToken2 = (await createTokens(client)).accessToken2;
+    accessToken3 = (await createTokens(client)).accessToken3;
     lotsExist = (await createLots(client, accessToken1, accessToken2, lotRepository)).lotsExist;
     bidsExist = (await createBids(client, accessToken1, accessToken2, lotsExist, bidRepository)).bidsExist;
   });
@@ -97,5 +99,152 @@ describe('OrdersController (e2e)', () => {
         .send({ arrivalLocation: 'my adress1', arrivalType: ArrivalType.DHL_EXPRESS })
         .expect(500);
     });
+  });
+
+  describe(`PATCH lots/id/order`, () => {
+    it('should not change order status for user1', async () => {
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.message[0].constraints.isNotEmpty).toEqual('arrivalLocation should not be empty');
+        });
+    });
+
+    it('should not change order status for user1', async () => {
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .send({ arrivalLocation: 'my adress', arrivalType: ArrivalType.DHL_EXPRESS })
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.error).toEqual('Failed to get order by user test@test.com.');
+        });
+    });
+
+    it('should not change order status for user2 if order status not in PENDING status', async () => {
+      await orderRepository.query(`UPDATE "order" SET "status" = 'SENT'`);
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/`)
+        .set('Authorization', `Bearer ${accessToken2}`)
+        .send({ arrivalLocation: 'my adress', arrivalType: ArrivalType.DHL_EXPRESS })
+        .expect(406)
+        .expect(({ body }) => {
+          expect(body.error).toEqual('Not Acceptable');
+        });
+
+      await orderRepository.query(`UPDATE "order" SET "status" = 'PENDING'`);
+    });
+
+    it('should change order status for user2', async () => {
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/`)
+        .set('Authorization', `Bearer ${accessToken2}`)
+        .send({ arrivalLocation: 'my adress new', arrivalType: ArrivalType.ROYAL_MAIL })
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.arrivalLocation).toEqual('my adress new');
+          expect(body.arrivalType).toEqual('ROYAL_MAIL');
+        });
+    });
+
+  });
+
+  describe(`PATCH lots/id/order/execute`, () => {
+    it('should not change order status for user2', async () => {
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/execute`)
+        .set('Authorization', `Bearer ${accessToken2}`)
+        .expect(400);
+    });
+
+    it('should not change order status for user1 if order status not in PENDING status', async () => {
+      await orderRepository.query(`UPDATE "order" SET "status" = 'SENT'`);
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/execute`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .expect(400);
+    });
+
+    it('should change order status to SENT for user1', async () => {
+      await orderRepository.query(`UPDATE "order" SET "status" = 'PENDING'`);
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/execute`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .expect(200);
+      orderExist = await orderRepository.query(`SELECT * FROM "order"`);
+      expect(orderExist[0].status).toEqual('SENT');
+    });
+  });
+
+  describe(`PATCH lots/id/order/receive`, () => {
+    it('should throw error if lot.id is not exist', async () => {
+      await client
+        .patch(`/lots/123456/order/receive`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .expect(500);
+    });
+
+    it('should not change order status for user1', async () => {
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/receive`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .expect(400);
+    });
+
+    it('should not change order status for user2 if order status not in SENT status', async () => {
+      await orderRepository.query(`UPDATE "order" SET "status" = 'PENDING'`);
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/receive`)
+        .set('Authorization', `Bearer ${accessToken2}`)
+        .expect(400);
+    });
+
+    it('should change order status to DELIVERED for user2', async () => {
+      await orderRepository.query(`UPDATE "order" SET "status" = 'SENT'`);
+      await client
+        .patch(`/lots/${lotsExist[0].id}/order/receive`)
+        .set('Authorization', `Bearer ${accessToken2}`)
+        .expect(200);
+      orderExist = await orderRepository.query(`SELECT * FROM "order"`);
+      expect(orderExist[0].status).toEqual('DELIVERED');
+    });
+  });
+
+  describe(`GET lots/id/order`, () => {
+
+    it('should return order for user2', async () => {
+      await client
+        .get(`/lots/${lotsExist[0].id}/order`)
+        .set('Authorization', `Bearer ${accessToken2}`)
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.status).toEqual('DELIVERED');
+          expect(body.bidId).toEqual(bidsExist[2].id);
+        });
+    });
+
+    it('should return order for user1', async () => {
+      await client
+        .get(`/lots/${lotsExist[0].id}/order`)
+        .set('Authorization', `Bearer ${accessToken1}`)
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.status).toEqual('DELIVERED');
+          expect(body.bidId).toEqual(bidsExist[2].id);
+        });
+    });
+
+    it('should not return order for user3', async () => {
+      await client
+        .get(`/lots/${lotsExist[0].id}/order`)
+        .set('Authorization', `Bearer ${accessToken3}`)
+        .expect(400)
+        .expect(({ body }) => {
+          expect(body.error).toEqual('Failed to get order by user test8@email.com.');
+        });
+    });
+
   });
 });

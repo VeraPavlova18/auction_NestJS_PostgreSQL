@@ -11,6 +11,11 @@ export async function createUsers(client, userRepository) {
   usersExist = await userRepository.query(`SELECT * FROM "user"`);
   await client.get(`/auth/confirm/${usersExist[1].confirmToken}`);
 
+  // create 3 user and token3
+  await client.post('/auth/signup').send(users[8]);
+  usersExist = await userRepository.query(`SELECT * FROM "user"`);
+  await client.get(`/auth/confirm/${usersExist[2].confirmToken}`);
+
   // final update of the users array
   usersExist = await userRepository.query(`SELECT * FROM "user"`);
 
@@ -26,7 +31,11 @@ export async function createTokens(client) {
   const query2 = await client.post('/auth/signin').send({ email: users[7].email, password: users[7].password });
   const accessToken2 = query2.body.accessToken;
 
-  return { accessToken1, accessToken2 };
+   // create token3
+  const query3 = await client.post('/auth/signin').send({ email: users[8].email, password: users[8].password });
+  const accessToken3 = query3.body.accessToken;
+
+  return { accessToken1, accessToken2, accessToken3 };
 }
 
 export async function createLots(client, accessToken1, accessToken2, lotRepository) {
