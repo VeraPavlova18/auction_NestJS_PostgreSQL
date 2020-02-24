@@ -15,6 +15,7 @@ import { Cron } from '@nestjs/schedule';
 import { LotStatus } from './lot-status.enum';
 import { SendEmailService } from '../mail/sendEmailService';
 import { LotIsWinner } from './lotIsWinner.interface';
+import { LotsQueries } from './lots.queries';
 
 @Injectable()
 export class LotsService {
@@ -24,12 +25,13 @@ export class LotsService {
     @InjectRepository(LotRepository)
     private lotRepository: LotRepository,
     private sendEmailService: SendEmailService,
+    private lotsQueries: LotsQueries,
   ) {}
 
   @Cron('0 * * * * *')
   async handleCron() {
-    await this.lotRepository
-      .getLotsForChangeStatus(
+    await this.lotsQueries
+      .getLotsWhere(
         `"startTime" <= now() AND "endTime" > now() AND status = 'PENDING'`,
       )
       .then(lots => {
@@ -42,8 +44,8 @@ export class LotsService {
         );
       });
 
-    await this.lotRepository
-      .getLotsForChangeStatus(`"endTime" <= now() AND status != 'CLOSED'`)
+    await this.lotsQueries
+      .getLotsWhere(`"endTime" <= now() AND status != 'CLOSED'`)
       .then(async lots => {
         await Promise.all(
           lots.map(lot =>

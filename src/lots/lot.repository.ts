@@ -64,15 +64,6 @@ export class LotRepository extends Repository<Lot> {
     return lot;
   }
 
-  async getLotsForChangeStatus(condition: string): Promise<Lot[]> {
-    return getConnection()
-      .createQueryBuilder()
-      .select('lot')
-      .from(Lot, 'lot')
-      .where(condition)
-      .getMany();
-  }
-
   async getLotOwner(lot: Lot): Promise<User> {
     return getConnection()
       .createQueryBuilder()

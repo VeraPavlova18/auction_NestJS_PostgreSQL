@@ -22,4 +22,13 @@ export class LotsQueries {
       .where('user.id = :id', { id: lot.userId })
       .getOne();
   }
+
+  async getLotsWhere(condition: string): Promise<Lot[]> {
+    return getConnection()
+      .createQueryBuilder()
+      .select('lot')
+      .from(Lot, 'lot')
+      .where(condition)
+      .getMany();
+  }
 }
