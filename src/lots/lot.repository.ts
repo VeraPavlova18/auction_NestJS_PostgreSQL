@@ -7,18 +7,21 @@ import { Logger, InternalServerErrorException } from '@nestjs/common';
 import * as moment from 'moment';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
-import { Bid } from '../bids/bid.entity';
 import { LotIsWinner } from './lotIsWinner.interface';
+import { Bid } from '../bids/bid.entity';
 
 @EntityRepository(Lot)
 export class LotRepository extends Repository<Lot> {
   private logger = new Logger('LotRepository');
 
   async customizeLotWinner(lot: Lot, user: User): Promise<LotIsWinner> {
-    const { max: maxBid } = Object(await this.getMaxBidOfLot(lot));
-    const ownerOfMaxBid = await this.getOwnerOfMaxBidOfLot(maxBid);
-    const isWinner = user.id === ownerOfMaxBid.id ? true : false;
-    return { ...lot, isWinner } as LotIsWinner;
+    // const { max: maxBid } = Object(await this.getMaxBidOfLot(lot));
+    // const ownerOfMaxBid = await this.getOwnerOfMaxBidOfLot(maxBid);
+    // const isWinner = user.id === ownerOfMaxBid.id ? true : false;
+    return {
+      ...lot,
+      // isWinner
+    } as LotIsWinner;
   }
 
   async createLot(
@@ -70,31 +73,6 @@ export class LotRepository extends Repository<Lot> {
       .select('user')
       .from(User, 'user')
       .where('user.id = :id', { id: lot.userId })
-      .getOne();
-  }
-
-  async getMaxBidOfLot(lot: Lot): Promise<object> {
-    return getConnection()
-      .createQueryBuilder()
-      .select('Max(bid.proposedPrice)', 'max')
-      .from(Bid, 'bid')
-      .where('bid.lotId = :lotId', { lotId: lot.id })
-      .getRawOne();
-  }
-
-  async getOwnerOfMaxBidOfLot(max: number): Promise<User> {
-    const maxBid = await getConnection()
-      .createQueryBuilder()
-      .select('bid')
-      .from(Bid, 'bid')
-      .where('bid.proposedPrice = :max', { max })
-      .getOne();
-
-    return getConnection()
-      .createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .where('user.id = :id', { id: maxBid.userId })
       .getOne();
   }
 

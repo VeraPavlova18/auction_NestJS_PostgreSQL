@@ -16,6 +16,7 @@ import { LotStatus } from './lot-status.enum';
 import { SendEmailService } from '../mail/sendEmailService';
 import { LotIsWinner } from './lotIsWinner.interface';
 import { LotsQueries } from './lots.queries';
+import { BidsQueries } from '../bids/bids.queries';
 
 @Injectable()
 export class LotsService {
@@ -26,6 +27,7 @@ export class LotsService {
     private lotRepository: LotRepository,
     private sendEmailService: SendEmailService,
     private lotsQueries: LotsQueries,
+    private bidsQueries: BidsQueries,
   ) {}
 
   @Cron('0 * * * * *')
@@ -61,10 +63,10 @@ export class LotsService {
           lots.map(async lot => {
             const owner = await this.lotRepository.getLotOwner(lot);
             const { max: maxBid } = Object(
-              await this.lotRepository.getMaxBidOfLot(lot),
+              await this.bidsQueries.getPriceFromMaxBidOfLot(lot),
             );
             if (maxBid) {
-              const ownerOfMaxBid = await this.lotRepository.getOwnerOfMaxBidOfLot(
+              const ownerOfMaxBid = await this.bidsQueries.getOwnerOfMaxBidOfLot(
                 maxBid,
               );
               this.sendEmailService.sendEmailToTheBidsWinner(
