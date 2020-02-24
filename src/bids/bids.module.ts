@@ -7,10 +7,15 @@ import { BidRepository } from './bid.repository';
 import { BidsService } from './bids.service';
 import { BidsController } from './bids.controller';
 import { SendEmailService } from '../mail/sendEmailService';
+import { LotsQueries } from '../lots/lots.queries';
 
 @Module({
   imports: [TypeOrmModule.forFeature([BidRepository]), AuthModule],
   controllers: [BidsController],
-  providers: [BidsService, AppGateway, SendEmailService],
+  providers: [
+    BidsService,
+    // AppGateway,
+    SendEmailService,
+    LotsQueries],
 })
 export class BidsModule {}

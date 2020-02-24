@@ -14,7 +14,6 @@ import {
   Patch,
   UseInterceptors,
   UploadedFile,
-  UploadedFiles,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { AuthGuard } from '@nestjs/passport';
@@ -26,7 +25,7 @@ import { GetUser } from '../auth/get-user.decorator';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { LotIsWinner } from './lotIsWinner.interface';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { editFileName, imageFileFilter } from '../utils/img-uploading.utils';
 
 @Controller('lots')

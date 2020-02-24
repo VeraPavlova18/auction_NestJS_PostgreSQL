@@ -2,7 +2,6 @@ import {
   EntityRepository,
   Repository,
   getManager,
-  getConnection,
 } from 'typeorm';
 import { User } from '../auth/user.entity';
 import {
@@ -29,24 +28,6 @@ export class BidRepository extends Repository<Bid> {
     delete bid.user;
     delete bid.userId;
     return { ...bid, customer } as BidCustomer;
-  }
-
-  async getLot(id: number): Promise<Lot> {
-    return getConnection()
-      .createQueryBuilder()
-      .select('lot')
-      .from(Lot, 'lot')
-      .where('lot.id = :id', { id })
-      .getOne();
-  }
-
-  async getLotOwner(lot: Lot): Promise<User> {
-    return getConnection()
-      .createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .where('user.id = :id', { id: lot.userId })
-      .getOne();
   }
 
   async createBid(
