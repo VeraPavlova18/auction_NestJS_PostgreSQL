@@ -9,6 +9,7 @@ import {
 import { LotStatus } from './lot-status.enum';
 import { User } from '../auth/user.entity';
 import { Bid } from '../bids/bid.entity';
+import { Expose } from 'class-transformer';
 
 @Entity()
 export class Lot extends BaseEntity {
@@ -64,4 +65,9 @@ export class Lot extends BaseEntity {
     { eager: true },
   )
   bids: Bid[];
+
+  private isWinner: boolean;
+  setIsWinner(param) {
+    this.isWinner = param;
+  }
 }

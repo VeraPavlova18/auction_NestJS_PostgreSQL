@@ -24,7 +24,6 @@ import { User } from '../auth/user.entity';
 import { GetUser } from '../auth/get-user.decorator';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
-import { LotIsWinner } from './lotIsWinner.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { editFileName, imageFileFilter } from '../utils/img-uploading.utils';
 
@@ -84,7 +83,7 @@ export class LotsController {
   getLotById(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
-  ): Promise<LotIsWinner | Lot> {
+  ): Promise<Lot> {
     return this.lotsService.getLotById(id, user);
   }
 

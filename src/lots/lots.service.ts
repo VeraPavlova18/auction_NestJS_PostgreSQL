@@ -14,7 +14,6 @@ import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { Cron } from '@nestjs/schedule';
 import { LotStatus } from './lot-status.enum';
 import { SendEmailService } from '../mail/sendEmailService';
-import { LotIsWinner } from './lotIsWinner.interface';
 import { LotsQueries } from './lots.queries';
 import { BidsQueries } from '../bids/bids.queries';
 import { UsersQueries } from '../auth/users.queries';
@@ -65,7 +64,7 @@ export class LotsService {
           lots.map(async lot => {
             const owner = await this.usersQueries.getLotOwner(lot);
             const { max: maxBid } = Object(
-              await this.bidsQueries.getPriceFromMaxBidOfLot(lot),
+              await this.bidsQueries.getPriceFromMaxBidOfLot(lot.id),
             );
             if (maxBid) {
               const ownerOfMaxBid = await this.bidsQueries.getOwnerOfMaxBidOfLot(
@@ -107,7 +106,7 @@ export class LotsService {
     return this.lotRepository.getLots(filterDto, user);
   }
 
-  async getLotById(id: number, user: User): Promise<LotIsWinner | Lot> {
+  async getLotById(id: number, user: User): Promise<Lot> {
     const lot = await this.lotRepository.findOne({
       where: { id },
     });
@@ -115,10 +114,12 @@ export class LotsService {
       throw new NotFoundException(`Lot with ID "${id}" not found`);
     }
     if (lot.status === LotStatus.CLOSED) {
-      return this.lotRepository.customizeLotWinner(lot, user);
-    } else {
-      return lot;
+      const max = await this.bidsQueries.getPriceFromMaxBidOfLot(lot.id);
+      const ownerOfMaxBid = await this.bidsQueries.getOwnerOfMaxBidOfLot(max);
+      const isWinner = user.id === ownerOfMaxBid.id ? true : false;
+      lot.setIsWinner(isWinner);
     }
+    return lot;
   }
 
   async deleteLotById(id: number, user: User): Promise<void> {
