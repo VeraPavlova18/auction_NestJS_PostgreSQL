@@ -1,7 +1,7 @@
 const socket = io('http://localhost:3001');
 const tbody = document.getElementById('bidsInfo');
 const lotId = 3
-const BearerToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InBhdmxvdmFAZ29vZ2xlLmNvbSIsImlhdCI6MTU4MTUwNjkwMCwiZXhwIjoxNTgxNTEwNTAwfQ.Pqlfr5J7_XD53gdhSgV-7VXw1oCCRFzuyCbI5t8nOrI';
+const BearerToken = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAZ21haWwuY29tIiwiaWF0IjoxNTgyNjQ3NDIxLCJleHAiOjE1ODI2NTEwMjF9.MvfUUtbmXMJNSZ8AsesZu34O7wS3Wk76JsfU7kgw7ZI';
 
 async function getBids() {
   let resp = await fetch(`http://localhost:3000/lots/${lotId}/bids`, {    
@@ -15,13 +15,13 @@ async function getBids() {
     let tdBid1 = document.createElement('td');
     let tdBid2 = document.createElement('td');
     let tdBid3 = document.createElement('td');
-    tdBid3.innerHTML = bid.customer;
+    tdBid1.innerHTML = bid.setCustomer;
     tdBid2.innerHTML = bid.proposedPrice;
-    tdBid1.innerHTML = moment(bid.creationTime).format('MMMM Do YYYY, h:mm:ss a');
-    trBid.prepend(tdBid1);
-    trBid.prepend(tdBid2);
-    trBid.prepend(tdBid3);
-    tbody.prepend(trBid);
+    tdBid3.innerHTML = moment(bid.creationTime).format('MMMM Do YYYY, h:mm:ss a');
+    trBid.append(tdBid1);
+    trBid.append(tdBid2);
+    trBid.append(tdBid3);
+    tbody.append(trBid);
   })
 }
 
@@ -29,7 +29,6 @@ socket.on('connection', data => console.log(data));
 
 socket.on('newBid', bid => {   
   if (bid.lotId === lotId) {
-    console.log(bid.lotId , lotId)
     let trBid = document.createElement('tr');
     let tdBid1 = document.createElement('td');
     let tdBid2 = document.createElement('td');

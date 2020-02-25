@@ -1,8 +1,4 @@
-import {
-  EntityRepository,
-  Repository,
-  getManager,
-} from 'typeorm';
+import { EntityRepository, Repository, getManager } from 'typeorm';
 import { User } from '../auth/user.entity';
 import {
   Logger,
@@ -12,7 +8,6 @@ import {
 import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
 import * as moment from 'moment';
-import { BidCustomer } from './bidCustomer.interface';
 import { Lot } from '../lots/lot.entity';
 import { LotStatus } from '../lots/lot-status.enum';
 
@@ -20,21 +15,21 @@ import { LotStatus } from '../lots/lot-status.enum';
 export class BidRepository extends Repository<Bid> {
   private logger = new Logger('BidRepository');
 
-  customizeBid(bid: Bid, user: User): BidCustomer {
-    const customer =
-      bid.userId === user.id
-        ? `You`
-        : `Customer ${Math.floor(Math.random() * 100000 + 1)}`;
-    delete bid.user;
-    delete bid.userId;
-    return { ...bid, customer } as BidCustomer;
-  }
+  // customizeBid(bid: Bid, user: User): BidCustomer {
+  //   const customer =
+  //     bid.userId === user.id
+  //       ? `You`
+  //       : `Customer ${Math.floor(Math.random() * 100000 + 1)}`;
+  //   delete bid.user;
+  //   delete bid.userId;
+  //   return { ...bid, customer } as BidCustomer;
+  // }
 
   async createBid(
     user: User,
     createBidDto: CreateBidDto,
     id: number,
-  ): Promise<BidCustomer> {
+  ): Promise<Bid> {
     const { proposedPrice } = createBidDto;
     try {
       return getManager().transaction(
@@ -79,10 +74,12 @@ export class BidRepository extends Repository<Bid> {
           const bid = new Bid();
           bid.proposedPrice = proposedPrice;
           bid.creationTime = moment().toDate();
-          bid.user = user;
+          bid.userId = user.id;
           bid.lotId = id;
           await transactionalEntityManager.save(bid);
-          return this.customizeBid(bid, user);
+          bid.setLoggedUserId(user.id);
+          bid.setCustomer();
+          return bid;
         },
       );
     } catch (error) {
@@ -94,14 +91,17 @@ export class BidRepository extends Repository<Bid> {
     }
   }
 
-  async getBids(user: User, id: number): Promise<BidCustomer[]> {
+  async getBids(user: User, id: number): Promise<Bid[]> {
     const query = this.createQueryBuilder('bid');
     try {
       const bids = await query
         .where('bid.lotId = :lotId', { lotId: id })
         .orderBy('bid.creationTime', 'DESC')
         .getMany();
-      return bids.map(bid => this.customizeBid(bid, user));
+      return bids.map(bid => {
+        bid.setLoggedUserId(user.id);
+        return bid;
+      });
     } catch (error) {
       this.logger.error(
         `Failed to get bids for user "${user.email}".`,

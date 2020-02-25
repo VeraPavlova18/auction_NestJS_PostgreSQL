@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { AppGateway } from '../app.gateway';
@@ -6,7 +6,6 @@ import { User } from '../auth/user.entity';
 import { BidRepository } from './bid.repository';
 import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
-import { BidCustomer } from './bidCustomer.interface';
 import { SendEmailService } from '../mail/sendEmailService';
 import { LotsQueries } from '../lots/lots.queries';
 
@@ -26,7 +25,7 @@ export class BidsService {
     user: User,
     createBidDto: CreateBidDto,
     id: number,
-  ): Promise<BidCustomer> {
+  ): Promise<Bid> {
     return this.bidRepository
       .createBid(user, createBidDto, id)
       .then(bid => {

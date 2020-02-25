@@ -9,6 +9,8 @@ import {
   ParseIntPipe,
   Param,
   Get,
+  ClassSerializerInterceptor,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { BidsService } from './bids.service';
@@ -16,7 +18,6 @@ import { CreateBidDto } from './dto/create-bid.dto';
 import { User } from '../auth/user.entity';
 import { GetUser } from '../auth/get-user.decorator';
 import { Bid } from './bid.entity';
-import { BidCustomer } from './bidCustomer.interface';
 
 @Controller('lots/:id/bids')
 @UseGuards(AuthGuard('jwt'))
@@ -25,16 +26,18 @@ export class BidsController {
   constructor(private bidsService: BidsService) {}
 
   @Post()
+  @UseInterceptors(ClassSerializerInterceptor)
   @UsePipes(ValidationPipe)
   createBid(
     @GetUser() user: User,
     @Body() createBidDto: CreateBidDto,
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<BidCustomer> {
+  ): Promise<Bid> {
     return this.bidsService.createBid(user, createBidDto, id);
   }
 
   @Get()
+  @UseInterceptors(ClassSerializerInterceptor)
   getBidsByLotId(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
