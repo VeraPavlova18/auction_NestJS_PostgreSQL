@@ -26,6 +26,7 @@ import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { editFileName, imageFileFilter } from '../utils/img-uploading.utils';
+import { UpdateLotDto } from './dto/update-lot.dto copy';
 
 @Controller('lots')
 @UseGuards(AuthGuard('jwt'))
@@ -96,11 +97,12 @@ export class LotsController {
   }
 
   @Patch(':id/edit')
+  @UsePipes(ValidationPipe)
   updateLot(
     @Param('id', ParseIntPipe) id: number,
-    @Body() createLotDto: CreateLotDto,
+    @Body() updateLotDto: UpdateLotDto,
     @GetUser() user: User,
   ): Promise<Lot> {
-    return this.lotsService.updateLot(id, createLotDto, user);
+    return this.lotsService.updateLot(id, updateLotDto, user);
   }
 }

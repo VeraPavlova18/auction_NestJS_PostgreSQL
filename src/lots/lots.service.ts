@@ -17,6 +17,7 @@ import { SendEmailService } from '../mail/sendEmailService';
 import { LotsQueries } from './lots.queries';
 import { BidsQueries } from '../bids/bids.queries';
 import { UsersQueries } from '../auth/users.queries';
+import { UpdateLotDto } from './dto/update-lot.dto copy';
 
 @Injectable()
 export class LotsService {
@@ -148,7 +149,7 @@ export class LotsService {
 
   async updateLot(
     id: number,
-    createLotDto: CreateLotDto,
+    updateLotDto: UpdateLotDto,
     user: User,
   ): Promise<Lot> {
     const {
@@ -158,7 +159,7 @@ export class LotsService {
       endTime,
       curentPrice,
       estimatedPrice,
-    } = createLotDto;
+    } = updateLotDto;
 
     const lot = await this.getLotById(id, user);
 
