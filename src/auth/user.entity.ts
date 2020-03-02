@@ -9,6 +9,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { Lot } from '../lots/lot.entity';
 import { Bid } from '../bids/bid.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 @Unique(['phone'])
@@ -32,17 +33,21 @@ export class User extends BaseEntity {
   @Column()
   birthday: Date;
 
+  @Exclude({ toPlainOnly: true })
   @Column()
   password: string;
 
+  @Exclude({ toPlainOnly: true })
   @Column()
   salt: string;
 
+  @Exclude({ toPlainOnly: true })
   @Column({
     nullable: true,
   })
   confirmToken: string;
 
+  @Exclude({ toPlainOnly: true })
   @Column()
   isconfirm: boolean;
 
@@ -51,6 +56,7 @@ export class User extends BaseEntity {
     lot => lot.user,
     { eager: true },
   )
+  @Exclude({ toPlainOnly: true })
   lots: Lot[];
 
   @OneToMany(
@@ -58,6 +64,7 @@ export class User extends BaseEntity {
     bid => bid.user,
     { eager: true },
   )
+  @Exclude({ toPlainOnly: true })
   bids: Bid[];
 
   async validatePassword(password: string): Promise<boolean> {

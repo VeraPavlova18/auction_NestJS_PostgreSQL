@@ -1,36 +1,27 @@
-import {
-  Controller,
-  ValidationPipe,
-  Post,
-  Body,
-  Get,
-  Param,
-} from '@nestjs/common';
+import { Controller, ValidationPipe, Post, Body, Get, Param, UseInterceptors, ClassSerializerInterceptor } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { SignInCredentialsDto } from './dto/signIn-credential.dto';
+import { AuthDto } from './dto/auth.dto';
+import { SignInDto } from './dto/signIn.dto';
 import { User } from './user.entity';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangePassDto } from './dto/change-pass.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/signup')
-  async signUp(
-    @Body(ValidationPipe) authCredentialsDto: AuthCredentialsDto,
-  ): Promise<void> {
-    await this.authService.signUp(authCredentialsDto);
+  @UseInterceptors(ClassSerializerInterceptor)
+  async signUp(@Body(ValidationPipe) authDto: AuthDto): Promise<User> {
+    return this.authService.signUp(authDto);
   }
 
   @Post('/signin')
-  signIn(
-    @Body(ValidationPipe) signInCredentialsDto: SignInCredentialsDto,
-  ): Promise<{ accessToken: string }> {
-    return this.authService.signIn(signInCredentialsDto);
+  signIn(@Body(ValidationPipe) signInDto: SignInDto): Promise<{ accessToken: string }> {
+    return this.authService.signIn(signInDto);
   }
 
   @Get('/confirm/:confirmToken')
+  @UseInterceptors(ClassSerializerInterceptor)
   confirmUser(@Param('confirmToken') confirmToken: string): Promise<User> {
     return this.authService.confirmUser(confirmToken);
   }
@@ -41,17 +32,15 @@ export class AuthController {
   }
 
   @Get('/recovery-pass/:confirmToken')
-  goToChangePassForm(
-    @Param('confirmToken') confirmToken: string,
-  ): Promise<void> {
+  goToChangePassForm(@Param('confirmToken') confirmToken: string): Promise<void> {
     return this.authService.goToChangePassForm(confirmToken);
   }
 
   @Post('/recovery-pass/:confirmToken')
   changePassAndLoginn(
     @Param('confirmToken') confirmToken: string,
-    @Body(ValidationPipe) changePasswordDto: ChangePasswordDto,
+    @Body(ValidationPipe) changePassDto: ChangePassDto,
   ): Promise<{ accessToken: string }> {
-    return this.authService.changePassAndLogin(confirmToken, changePasswordDto);
+      return this.authService.changePassAndLogin(confirmToken, changePassDto);
   }
 }

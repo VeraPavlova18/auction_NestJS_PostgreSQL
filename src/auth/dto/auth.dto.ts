@@ -11,7 +11,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class AuthCredentialsDto {
+export class AuthDto {
   @IsNotEmpty()
   @IsString()
   @MinLength(2)

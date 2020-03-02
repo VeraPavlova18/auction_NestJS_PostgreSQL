@@ -1,28 +1,17 @@
 import { EntityRepository, Repository } from 'typeorm';
-import {
-  ConflictException,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { InternalServerErrorException, NotFoundException, BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { User } from './user.entity';
-import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { SignInCredentialsDto } from './dto/signIn-credential.dto';
+import { AuthDto } from './dto/auth.dto';
+import { SignInDto } from './dto/signIn.dto';
 import * as uuidv4 from 'uuid/v4';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangePassDto } from './dto/change-pass.dto';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
-  async signUp(authCredentialsDto: AuthCredentialsDto): Promise<User> {
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      birthday,
-      password,
-    } = authCredentialsDto;
 
+  async signUp(authDto: AuthDto): Promise<User> {
+    const { firstName, lastName, email, phone, birthday, password } = authDto;
     const user = new User();
     user.firstName = firstName;
     user.lastName = lastName;
@@ -34,21 +23,22 @@ export class UserRepository extends Repository<User> {
     user.confirmToken = uuidv4();
     user.isconfirm = false;
 
+    const isEmailExist = await this.findOne({ email: user.email });
+    if (isEmailExist) { throw new BadRequestException(`User with email: ${user.email} already exist!`); }
+
+    const isPhoneExist = await this.findOne({ phone: user.phone });
+    if (isPhoneExist) { throw new BadRequestException(`User with phone: ${user.phone} already exist!`); }
+
     try {
-      return await user.save();
+      await user.save();
     } catch (error) {
-      if (error.code === '23505') {
-        throw new ConflictException(error.detail);
-      } else {
-        throw new InternalServerErrorException();
-      }
+      throw new InternalServerErrorException();
     }
+    return user;
   }
 
-  async validateUserPassword(
-    signInCredentialsDto: SignInCredentialsDto,
-  ): Promise<string> {
-    const { email, password } = signInCredentialsDto;
+  async validateUserPassword(signInDto: SignInDto): Promise<string> {
+    const { email, password } = signInDto;
     const user = await this.findOne({ email });
 
     if (user && (await user.validatePassword(password))) {
@@ -59,7 +49,7 @@ export class UserRepository extends Repository<User> {
   }
 
   async validateChangeUserPassword(
-    changePasswordDto: ChangePasswordDto,
+    changePasswordDto: ChangePassDto,
     email: string,
   ): Promise<string> {
     const { password } = changePasswordDto;
@@ -72,35 +62,35 @@ export class UserRepository extends Repository<User> {
     }
   }
 
-  async changePass(
-    confirmToken: string,
-    changePasswordDto: ChangePasswordDto,
-  ): Promise<void> {
+  async changePass(confirmToken: string, changePassDto: ChangePassDto): Promise<void> {
     const user = await this.getUser({ confirmToken });
-    const { password } = changePasswordDto;
+    const { password } = changePassDto;
 
-    if (!user.isconfirm) {
-      user.isconfirm = true;
-    }
+    if (!user.isconfirm) { user.isconfirm = true; }
+
     user.confirmToken = null;
     user.salt = await bcrypt.genSalt();
     user.password = await this.hashPassword(password, user.salt);
-    await user.save();
+
+    try {
+      await user.save();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 
   async getUser(where: object): Promise<User> {
     const found = await this.findOne({ where });
-    if (!found) {
-      throw new NotFoundException(`User not found`);
-    }
+
+    if (!found) { throw new NotFoundException(`User not found`); }
+
     return found;
   }
 
-  async isUserConfirm(
-    signInCredentialsDto: SignInCredentialsDto,
-  ): Promise<boolean> {
-    const { email } = signInCredentialsDto;
+  async isUserConfirm(signInDto: SignInDto): Promise<boolean> {
+    const { email } = signInDto;
     const user = await this.findOne({ email });
+
     return user && user.isconfirm ? true : false;
   }
 
