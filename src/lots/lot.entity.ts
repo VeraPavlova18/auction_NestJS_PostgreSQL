@@ -9,7 +9,7 @@ import {
 import { LotStatus } from './lot-status.enum';
 import { User } from '../auth/user.entity';
 import { Bid } from '../bids/bid.entity';
-import { Expose } from 'class-transformer';
+import { Expose, Exclude } from 'class-transformer';
 
 @Entity()
 export class Lot extends BaseEntity {
@@ -54,11 +54,14 @@ export class Lot extends BaseEntity {
     user => user.lots,
     { eager: false },
   )
+  @Exclude({ toPlainOnly: true })
   user: User;
 
+  @Exclude({ toPlainOnly: true })
   @Column()
   userId: number;
 
+  @Exclude({ toPlainOnly: true })
   @OneToMany(
     type => Bid,
     bid => bid.lot,

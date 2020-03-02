@@ -1,4 +1,4 @@
-import { EntityRepository, Repository, getConnection, In } from 'typeorm';
+import { EntityRepository, Repository, getConnection } from 'typeorm';
 import { Lot } from './lot.entity';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { User } from '../auth/user.entity';
@@ -18,15 +18,7 @@ export class LotRepository extends Repository<Lot> {
     user: User,
     img: globalThis.Express.Multer.File,
   ): Promise<Lot> {
-    const {
-      title,
-      description,
-      startTime,
-      endTime,
-      curentPrice,
-      estimatedPrice,
-    } = createLotDto;
-
+    const { title, description, startTime, endTime, curentPrice, estimatedPrice } = createLotDto;
     const lot = new Lot();
     lot.title = title;
     lot.description = description;
@@ -37,22 +29,14 @@ export class LotRepository extends Repository<Lot> {
     lot.status = LotStatus.PENDING;
     lot.createdAt = moment().toDate();
     lot.user = user;
-    lot.image = img ? img.path
-      .split('/')
-      .slice(1)
-      .join('/') : '';
+    lot.image = img ? img.path.split('/').slice(1).join('/') : '';
 
     try {
       await lot.save();
     } catch (error) {
-      this.logger.error(
-        `Failed to create a lot for user ${user.email}. Data: ${createLotDto}`,
-        error.stack,
-      );
+      this.logger.error(`Failed to create a lot for user ${user.email}. Data: ${createLotDto}`, error.stack);
       throw new InternalServerErrorException();
     }
-
-    delete lot.user;
     return lot;
   }
 
@@ -73,23 +57,15 @@ export class LotRepository extends Repository<Lot> {
     if (myBids.length > 0) {
       const myLotsIdFromMyBids = [];
       myBids.map(bid => myLotsIdFromMyBids.push(bid.lotId));
-      query.where('lot.userId = :userId OR lot.id IN (:...ids)', {
-        userId: user.id,
-        ids: myLotsIdFromMyBids,
-      });
+      query.where('lot.userId = :userId OR lot.id IN (:...ids)', { userId: user.id, ids: myLotsIdFromMyBids });
     } else {
       query.where('lot.userId = :userId', { userId: user.id });
     }
 
-    if (status) {
-      query.andWhere('lot.status = :status', { status });
-    }
-    if (search) {
-      query.andWhere(
-        '(lot.title LIKE :search OR lot.description LIKE :search)',
-        { search: `%${search}%` },
-      );
-    }
+    if (status) { query.andWhere('lot.status = :status', { status }); }
+
+    if (search) { query.andWhere('(lot.title LIKE :search OR lot.description LIKE :search)', { search: `%${search}%` }); }
+
     try {
       return await query
         .take(Math.abs(+take))
@@ -98,9 +74,7 @@ export class LotRepository extends Repository<Lot> {
         .getMany();
     } catch (error) {
       this.logger.error(
-        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(
-          filterDto,
-        )}`,
+        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(filterDto)}`,
         error.stack,
       );
       throw new InternalServerErrorException();
@@ -112,12 +86,8 @@ export class LotRepository extends Repository<Lot> {
     const query = this.createQueryBuilder('lot');
     query.where('lot.status = :status', { status: 'IN_PROCESS' });
 
-    if (search) {
-      query.andWhere(
-        '(lot.title LIKE :search OR lot.description LIKE :search)',
-        { search: `%${search}%` },
-      );
-    }
+    if (search) { query.andWhere('(lot.title LIKE :search OR lot.description LIKE :search)', { search: `%${search}%` }); }
+
     try {
       return await query
         .take(Math.abs(+take))
@@ -126,9 +96,7 @@ export class LotRepository extends Repository<Lot> {
         .getMany();
     } catch (error) {
       this.logger.error(
-        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(
-          filterDto,
-        )}`,
+        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(filterDto)}`,
         error.stack,
       );
       throw new InternalServerErrorException();

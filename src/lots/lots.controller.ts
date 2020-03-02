@@ -14,6 +14,7 @@ import {
   Patch,
   UseInterceptors,
   UploadedFile,
+  ClassSerializerInterceptor,
 } from '@nestjs/common';
 import { diskStorage } from 'multer';
 import { AuthGuard } from '@nestjs/passport';
@@ -39,64 +40,42 @@ export class LotsController {
   @UsePipes(ValidationPipe)
   @UseInterceptors(
     FileInterceptor('img', {
-      storage: diskStorage({
-        destination: './static/files',
-        filename: editFileName,
-      }),
+      storage: diskStorage({ destination: './static/files', filename: editFileName }),
       fileFilter: imageFileFilter,
     }),
+    ClassSerializerInterceptor,
   )
-  createLot(
-    @Body() createLotDto: CreateLotDto,
-    @GetUser() user: User,
-    @UploadedFile() img,
-  ): Promise<Lot> {
+  createLot(@Body() createLotDto: CreateLotDto, @GetUser() user: User, @UploadedFile() img): Promise<Lot> {
     return this.lotsService.createLot(createLotDto, user, img);
   }
 
   @Get('/my')
-  getMyLots(
-    @Query(ValidationPipe) filterDto: GetMyLotsFilterDto,
-    @GetUser() user: User,
-  ): Promise<Lot[]> {
-    this.logger.verbose(
-      `User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(
-        filterDto,
-      )}`,
-    );
+  @UseInterceptors(ClassSerializerInterceptor)
+  getMyLots(@Query(ValidationPipe) filterDto: GetMyLotsFilterDto, @GetUser() user: User): Promise<Lot[]> {
+    this.logger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
     return this.lotsService.getMyLots(filterDto, user);
   }
 
   @Get()
-  getLots(
-    @Query(ValidationPipe) filterDto: GetLotsFilterDto,
-    @GetUser() user: User,
-  ): Promise<Lot[]> {
-    this.logger.verbose(
-      `User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(
-        filterDto,
-      )}`,
-    );
+  @UseInterceptors(ClassSerializerInterceptor)
+  getLots(@Query(ValidationPipe) filterDto: GetLotsFilterDto, @GetUser() user: User): Promise<Lot[]> {
+    this.logger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
     return this.lotsService.getLots(filterDto, user);
   }
 
   @Get('/:id')
-  getLotById(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser() user: User,
-  ): Promise<Lot> {
+  @UseInterceptors(ClassSerializerInterceptor)
+  getLotById(@Param('id', ParseIntPipe) id: number, @GetUser() user: User): Promise<Lot> {
     return this.lotsService.getLotById(id, user);
   }
 
   @Delete('/:id')
-  deleteLotById(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUser() user: User,
-  ): Promise<void> {
+  deleteLotById(@Param('id', ParseIntPipe) id: number, @GetUser() user: User): Promise<void> {
     return this.lotsService.deleteLotById(id, user);
   }
 
   @Patch(':id/edit')
+  @UseInterceptors(ClassSerializerInterceptor)
   @UsePipes(ValidationPipe)
   updateLot(
     @Param('id', ParseIntPipe) id: number,

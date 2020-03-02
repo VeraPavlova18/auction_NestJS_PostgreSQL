@@ -5,13 +5,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { LotRepository } from './lot.repository';
 import { AuthModule } from '../auth/auth.module';
 import { SendEmailService } from '../mail/sendEmailService';
-import { LotsQueries } from './lots.queries';
-import { BidsQueries } from '../bids/bids.queries';
-import { UsersQueries } from '../auth/users.queries';
+import { DBqueries } from '../db.queries';
 
 @Module({
   imports: [TypeOrmModule.forFeature([LotRepository]), AuthModule],
   controllers: [LotsController],
-  providers: [LotsService, SendEmailService, LotsQueries, BidsQueries, UsersQueries],
+  providers: [LotsService, SendEmailService, DBqueries],
 })
 export class LotsModule {}
