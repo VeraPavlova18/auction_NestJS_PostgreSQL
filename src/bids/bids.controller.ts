@@ -23,6 +23,7 @@ import { Bid } from './bid.entity';
 @UseGuards(AuthGuard('jwt'))
 export class BidsController {
   private logger = new Logger('BidsController');
+
   constructor(private bidsService: BidsService) {}
 
   @Post()

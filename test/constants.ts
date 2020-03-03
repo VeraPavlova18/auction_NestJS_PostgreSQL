@@ -2,12 +2,12 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import * as moment from 'moment';
-import { AuthCredentialsDto } from '../src/auth/dto/auth-credentials.dto';
+import { AuthDto } from '../src/auth/dto/auth.dto';
 import { CreateLotDto } from '../src/lots/dto/create-lot.dto';
 
 export const app = `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`;
 
-export const users: AuthCredentialsDto[] = [
+export const users: AuthDto[] = [
   {
     firstName: 'Test user0',
     lastName: 'Pavlova0',
