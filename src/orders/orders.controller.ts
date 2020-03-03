@@ -40,11 +40,7 @@ export class OrdersController {
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
-    return this.ordersService.changeOrderStatusByOwner(
-      user,
-      OrderStatus.SENT,
-      id,
-    );
+    return this.ordersService.changeOrderStatusByOwner(user, OrderStatus.SENT, id);
   }
 
   @Patch('/receive')
@@ -52,11 +48,7 @@ export class OrdersController {
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<void> {
-    return this.ordersService.changeOrderStatusByCustomer(
-      user,
-      OrderStatus.DELIVERED,
-      id,
-    );
+    return this.ordersService.changeOrderStatusByCustomer(user, OrderStatus.DELIVERED, id);
   }
 
   @Get()

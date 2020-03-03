@@ -34,7 +34,7 @@ export class LotsService {
     if (lotsClosed.length > 0) {
       lotsClosed.map(async lot => {
         const owner = await this.dbqueries.getLotOwner(lot);
-        const { max: maxBid } = Object(await this.dbqueries.getMaxBidPrice(lot.id));
+        const maxBid = await this.dbqueries.getMaxBidPrice(lot.id);
 
         if (maxBid) {
           const ownerOfMaxBid = await this.dbqueries.getOwnerOfMaxBidOfLot(maxBid);

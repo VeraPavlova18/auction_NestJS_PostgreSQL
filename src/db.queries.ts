@@ -26,7 +26,7 @@ export class DBqueries {
     return maxObj.max;
   }
 
-  async getmaxBidOfLot(maxPrice: number) {
+  async getmaxBidOfLot(maxPrice: number): Promise<Bid> {
     return getConnection()
       .createQueryBuilder()
       .select('bid')
