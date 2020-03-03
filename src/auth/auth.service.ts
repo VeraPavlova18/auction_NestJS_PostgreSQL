@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, Logger, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthDto } from './dto/auth.dto';
@@ -9,17 +9,19 @@ import { SendEmailService } from '../mail/sendEmailService';
 import { User } from './user.entity';
 import * as uuidv4 from 'uuid/v4';
 import { ChangePassDto } from './dto/change-pass.dto';
+import { MyLogger } from '../logger/my-logger.service';
 
 @Injectable()
 export class AuthService {
-  private logger = new Logger('AuthService');
-
   constructor(
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
     private jwtService: JwtService,
     private sendEmailService: SendEmailService,
-  ) {}
+    private readonly myLogger: MyLogger,
+  ) {
+    this.myLogger.setContext('AuthService');
+  }
 
   async signUp(authDto: AuthDto): Promise<User> {
     const user = await this.userRepository.signUp(authDto);
@@ -84,7 +86,7 @@ export class AuthService {
 
     const payload: JwtPayload = { email };
     const accessToken = await this.jwtService.sign(payload);
-    this.logger.debug(`Generated JWT Token with payload ${JSON.stringify(payload)}`);
+    this.myLogger.debug(`Generated JWT Token with payload ${JSON.stringify(payload)}`);
     return { accessToken };
   }
 
@@ -95,7 +97,7 @@ export class AuthService {
 
     const payload: JwtPayload = { email };
     const accessToken = await this.jwtService.sign(payload);
-    this.logger.debug(`Generated JWT Token with payload ${JSON.stringify(payload)}`);
+    this.myLogger.debug(`Generated JWT Token with payload ${JSON.stringify(payload)}`);
     return { accessToken };
   }
 }

@@ -8,6 +8,7 @@ import { BidsService } from './bids.service';
 import { BidsController } from './bids.controller';
 import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
+import { MyLogger } from 'src/logger/my-logger.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([BidRepository]), AuthModule],
@@ -16,6 +17,7 @@ import { DBqueries } from '../db.queries';
     BidsService,
     AppGateway,
     SendEmailService,
-    DBqueries],
+    DBqueries,
+    MyLogger],
 })
 export class BidsModule {}

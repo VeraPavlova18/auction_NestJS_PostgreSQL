@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger, NotAcceptableException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, NotAcceptableException, InternalServerErrorException } from '@nestjs/common';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LotRepository } from './lot.repository';
@@ -11,17 +11,19 @@ import { LotStatus } from './lot-status.enum';
 import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
 import { UpdateLotDto } from './dto/update-lot.dto copy';
+import { MyLogger } from 'src/logger/my-logger.service';
 
 @Injectable()
 export class LotsService {
-  private logger = new Logger('LotsService');
-
   constructor(
     @InjectRepository(LotRepository)
     private lotRepository: LotRepository,
     private sendEmailService: SendEmailService,
     private dbqueries: DBqueries,
-  ) {}
+    private readonly myLogger: MyLogger,
+    ) {
+      this.myLogger.setContext('LotsService');
+    }
 
   @Cron('0 * * * * *')
   async handleCron() {
@@ -88,18 +90,18 @@ export class LotsService {
     const lot = await this.getLotById(id, user);
 
     if (lot.status !== 'PENDING') {
-      this.logger.verbose(`User "${user.email}" can't delete lot with status not equals pending.`);
+      this.myLogger.verbose(`User "${user.email}" can't delete lot with status not equals pending.`);
       throw new NotAcceptableException('can\'t delete lot with status not equals pending.');
     }
 
     if (lot.userId !== user.id) {
-      this.logger.verbose(`User "${user.email}" can't delete not own lot.`);
+      this.myLogger.verbose(`User "${user.email}" can't delete not own lot.`);
       throw new NotFoundException(`Lot with ID "${id}" not found`);
     }
 
     try {
       await this.lotRepository.delete(lot);
-      this.logger.verbose(`User "${user.email}" deleted lot with ID "${id}".`);
+      this.myLogger.verbose(`User "${user.email}" deleted lot with ID "${id}".`);
     } catch (error) {
       throw new InternalServerErrorException();
     }
@@ -117,7 +119,7 @@ export class LotsService {
     const lot = await this.getLotById(id, user);
 
     if (lot.status !== 'PENDING') {
-      this.logger.verbose(`User "${user.email}" can't change lot with status not equals pending.`);
+      this.myLogger.verbose(`User "${user.email}" can't change lot with status not equals pending.`);
       throw new NotAcceptableException('Can\'t change lot with status not equals pending.');
     }
 

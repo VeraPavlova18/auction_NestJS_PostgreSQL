@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { AppGateway } from '../app.gateway';
@@ -8,10 +8,10 @@ import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
 import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
+import { MyLogger } from 'src/logger/my-logger.service';
 
 @Injectable()
 export class BidsService {
-  private logger = new Logger('BidsService');
 
   constructor(
     @InjectRepository(BidRepository)
@@ -19,7 +19,10 @@ export class BidsService {
     private sendEmailService: SendEmailService,
     private dbqueries: DBqueries,
     private gateway: AppGateway,
-  ) {}
+    private readonly myLogger: MyLogger,
+  ) {
+    this.myLogger.setContext('BidsService');
+  }
 
   async createBid(user: User, createBidDto: CreateBidDto, id: number): Promise<Bid> {
     const bid = await this.bidRepository.createBid(user, createBidDto, id);
@@ -47,6 +50,7 @@ export class BidsService {
         `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/lots/${lot.id}`,
       );
     }
+    this.myLogger.debug(`Created new bid for lot with id:${id}`);
     return bid;
   }
 

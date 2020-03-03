@@ -1,6 +1,6 @@
 import { EntityRepository, Repository, getManager } from 'typeorm';
 import { User } from '../auth/user.entity';
-import { Logger, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
 import * as moment from 'moment';
@@ -9,7 +9,6 @@ import { LotStatus } from '../lots/lot-status.enum';
 
 @EntityRepository(Bid)
 export class BidRepository extends Repository<Bid> {
-  private logger = new Logger('BidRepository');
 
   async createBid(user: User, createBidDto: CreateBidDto, id: number): Promise<Bid> {
     const { proposedPrice } = createBidDto;
@@ -26,7 +25,6 @@ export class BidRepository extends Repository<Bid> {
           const lot = await transactionalEntityManager.findOne(Lot, id);
 
           if (lot.status !== LotStatus.IN_PROCESS) {
-            this.logger.error(`Failed to create a bid for lot ${lot.title}(id: ${lot.id}) by user ${user.email}.`);
             throw new BadRequestException({
               status: 400,
               error: `Failed to create a bid for lot ${lot.title}(id: ${lot.id}) by user ${user.email}.`,
@@ -66,7 +64,6 @@ export class BidRepository extends Repository<Bid> {
         },
       );
     } catch (error) {
-      this.logger.error(`Failed to create a Bid for user ${user.email}. Data: ${createBidDto}`, error.stack);
       throw new InternalServerErrorException();
     }
   }
@@ -83,7 +80,6 @@ export class BidRepository extends Repository<Bid> {
         return bid;
       });
     } catch (error) {
-      this.logger.error(`Failed to get bids for user "${user.email}".`, error.stack);
       throw new InternalServerErrorException();
     }
   }

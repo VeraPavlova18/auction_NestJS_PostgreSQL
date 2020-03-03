@@ -5,7 +5,6 @@ import {
   UsePipes,
   ValidationPipe,
   Body,
-  Logger,
   Get,
   Query,
   Param,
@@ -28,13 +27,18 @@ import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { editFileName, imageFileFilter } from '../utils/img-uploading.utils';
 import { UpdateLotDto } from './dto/update-lot.dto copy';
+import { MyLogger } from 'src/logger/my-logger.service';
 
 @Controller('lots')
 @UseGuards(AuthGuard('jwt'))
 export class LotsController {
-  private logger = new Logger('LotsController');
 
-  constructor(private lotsService: LotsService) {}
+  constructor(
+    private lotsService: LotsService,
+    private readonly myLogger: MyLogger,
+  ) {
+    this.myLogger.setContext('LotsController');
+  }
 
   @Post()
   @UsePipes(ValidationPipe)
@@ -52,14 +56,14 @@ export class LotsController {
   @Get('/my')
   @UseInterceptors(ClassSerializerInterceptor)
   getMyLots(@Query(ValidationPipe) filterDto: GetMyLotsFilterDto, @GetUser() user: User): Promise<Lot[]> {
-    this.logger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
+    this.myLogger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
     return this.lotsService.getMyLots(filterDto, user);
   }
 
   @Get()
   @UseInterceptors(ClassSerializerInterceptor)
   getLots(@Query(ValidationPipe) filterDto: GetLotsFilterDto, @GetUser() user: User): Promise<Lot[]> {
-    this.logger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
+    this.myLogger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
     return this.lotsService.getLots(filterDto, user);
   }
 

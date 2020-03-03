@@ -1,5 +1,5 @@
 import { EntityRepository, Repository, getConnection } from 'typeorm';
-import { Logger, InternalServerErrorException, NotAcceptableException } from '@nestjs/common';
+import { InternalServerErrorException, NotAcceptableException } from '@nestjs/common';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { User } from '../auth/user.entity';
@@ -8,7 +8,6 @@ import { Bid } from '../bids/bid.entity';
 
 @EntityRepository(Order)
 export class OrderRepository extends Repository<Order> {
-  private logger = new Logger('OrderRepository');
 
   async getMaxBidPrice(id: number): Promise<number> {
     const maxObj = await getConnection()
@@ -72,8 +71,7 @@ export class OrderRepository extends Repository<Order> {
     try {
       await order.save();
     } catch (error) {
-      this.logger.error(`Failed to create an order for user ${user.email}. Data: ${createOrderDto}`, error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(`Failed to create an order for user ${user.email}. Data: ${createOrderDto}`, error.stack);
     }
     return order;
   }
@@ -92,8 +90,7 @@ export class OrderRepository extends Repository<Order> {
     const order = await this.getOrderByLotId(id);
 
     if (order.status !== 'PENDING') {
-      this.logger.verbose(`User "${user.email}" can't change order with status not equals pending.`);
-      throw new NotAcceptableException('can\'t change lot with status not equals pending.');
+      throw new NotAcceptableException(`User "${user.email}" can't change order with status not equals pending.`);
     }
 
     const { arrivalLocation, arrivalType } = createOrderDto;
@@ -103,8 +100,7 @@ export class OrderRepository extends Repository<Order> {
     try {
       await order.save();
     } catch (error) {
-      this.logger.error(`Failed to update an order for user ${user.email}. Data: ${createOrderDto}`, error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(`Failed to update an order for user ${user.email}. Data: ${createOrderDto}`, error.stack);
     }
     return order;
   }

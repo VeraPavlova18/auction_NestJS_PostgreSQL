@@ -1,17 +1,16 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 import * as helmet from 'helmet';
+import { MyLogger } from './logger/my-logger.service';
 import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const logger = new Logger('bootstrap');
-  const app = await NestFactory.create(AppModule, { cors: true });
+  const app = await NestFactory.create(AppModule, { cors: true, logger: false });
   app.use(helmet());
+  app.useLogger(new MyLogger());
 
   const port = process.env.PORT;
   await app.listen(port);
-  logger.log(`App listening on port ${port}`);
 }
 bootstrap();

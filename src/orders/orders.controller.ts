@@ -1,7 +1,6 @@
 import {
   Controller,
   UseGuards,
-  Logger,
   Post,
   Get,
   UsePipes,
@@ -22,7 +21,6 @@ import { OrderStatus } from './order-status.enum';
 @Controller('lots/:id/order')
 @UseGuards(AuthGuard('jwt'))
 export class OrdersController {
-  private logger = new Logger('OrdersController');
   constructor(private ordersService: OrdersService) {}
 
   @Post()

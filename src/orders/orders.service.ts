@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException, NotAcceptableException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotAcceptableException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { User } from '../auth/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,17 +7,19 @@ import { SendEmailService } from '../mail/sendEmailService';
 import { Order } from './order.entity';
 import { OrderStatus } from './order-status.enum';
 import { DBqueries } from 'src/db.queries';
+import { MyLogger } from 'src/logger/my-logger.service';
 
 @Injectable()
 export class OrdersService {
-  private logger = new Logger('BidsService');
-
   constructor(
     @InjectRepository(OrderRepository)
     private orderRepository: OrderRepository,
     private sendEmailService: SendEmailService,
     private dbqueries: DBqueries,
-  ) {}
+    private readonly myLogger: MyLogger,
+  ) {
+    this.myLogger.setContext('OrdersService');
+  }
 
   async createOrder(user: User, createOrderDto: CreateOrderDto, id: number): Promise<Order> {
     const lot = await this.dbqueries.getLot(id);
@@ -25,7 +27,7 @@ export class OrdersService {
     const order = await this.orderRepository.createOrder(user, createOrderDto, id);
 
     if (lot.status !== 'CLOSED') {
-      this.logger.verbose(`User "${user.email}" can't create order for lot with status not equals CLOSED.`);
+      this.myLogger.verbose(`User "${user.email}" can't create order for lot with status not equals CLOSED.`);
       throw new NotAcceptableException('can\'t create order for lot with status not equals CLOSED');
     }
 
@@ -70,7 +72,7 @@ export class OrdersService {
     const customer = await this.orderRepository.getLotCustomer(maxPrice);
 
     if (order.status !== 'PENDING') {
-      this.logger.error(`Failed to change order status by user ${user.email}. Order status must to be in "PENDING"`);
+      this.myLogger.error(`Failed to change order status by user ${user.email}. Order status must to be in "PENDING"`);
       throw new BadRequestException({
         status: 400,
         error: `Failed to change order status by user ${user.email}. Order status must to be in "PENDING"`,
@@ -78,7 +80,7 @@ export class OrdersService {
     }
 
     if (user.id !== owner.id) {
-      this.logger.error(`Failed to change order status by user ${user.email}. Only lot owner can change order status for SENT`);
+      this.myLogger.error(`Failed to change order status by user ${user.email}. Only lot owner can change order status for SENT`);
       throw new BadRequestException({
         status: 400,
         error: `Failed to change order status by user ${user.email}.  Only lot owner can change order status for SENT`,
@@ -103,7 +105,7 @@ export class OrdersService {
     const customer = await this.orderRepository.getLotCustomer(maxPrice);
 
     if (order.status !== 'SENT') {
-      this.logger.error(`Failed to change order status by user ${user.email}. Order status must to be in "SENT"`);
+      this.myLogger.error(`Failed to change order status by user ${user.email}. Order status must to be in "SENT"`);
       throw new BadRequestException({
         status: 400,
         error: `Failed to change order status by user ${user.email}. Order status must to be in "SENT"`,
@@ -111,7 +113,7 @@ export class OrdersService {
     }
 
     if (user.id !== maxBid.userId) {
-      this.logger.error(`Failed to change order status by user ${user.email}. Only lot customer can change order status for DELIVERED`);
+      this.myLogger.error(`Failed to change order status by user ${user.email}. Only lot customer can change order status for DELIVERED`);
       throw new BadRequestException({
         status: 400,
         error: `Failed to change order status by user ${user.email}. Only lot customer can change order status for DELIVERED`,

@@ -1,7 +1,6 @@
 import {
   Controller,
   UseGuards,
-  Logger,
   Post,
   UsePipes,
   ValidationPipe,
@@ -18,13 +17,18 @@ import { CreateBidDto } from './dto/create-bid.dto';
 import { User } from '../auth/user.entity';
 import { GetUser } from '../auth/get-user.decorator';
 import { Bid } from './bid.entity';
+import { MyLogger } from 'src/logger/my-logger.service';
 
 @Controller('lots/:id/bids')
 @UseGuards(AuthGuard('jwt'))
 export class BidsController {
-  private logger = new Logger('BidsController');
 
-  constructor(private bidsService: BidsService) {}
+  constructor(
+    private bidsService: BidsService,
+    private readonly myLogger: MyLogger,
+  ) {
+    this.myLogger.setContext('BidsController');
+  }
 
   @Post()
   @UseInterceptors(ClassSerializerInterceptor)
@@ -43,6 +47,7 @@ export class BidsController {
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Bid[]> {
+    this.myLogger.debug(`user: ${user.email} get all bids for lot with id: ${id}`);
     return this.bidsService.getBidsByLotId(user, id);
   }
 }

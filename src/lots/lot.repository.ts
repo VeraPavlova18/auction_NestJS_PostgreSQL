@@ -3,7 +3,7 @@ import { Lot } from './lot.entity';
 import { CreateLotDto } from './dto/create-lot.dto';
 import { User } from '../auth/user.entity';
 import { LotStatus } from './lot-status.enum';
-import { Logger, InternalServerErrorException } from '@nestjs/common';
+import { InternalServerErrorException } from '@nestjs/common';
 import * as moment from 'moment';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
@@ -11,7 +11,6 @@ import { Bid } from '../bids/bid.entity';
 
 @EntityRepository(Lot)
 export class LotRepository extends Repository<Lot> {
-  private logger = new Logger('LotRepository');
 
   async createLot(
     createLotDto: CreateLotDto,
@@ -34,8 +33,7 @@ export class LotRepository extends Repository<Lot> {
     try {
       await lot.save();
     } catch (error) {
-      this.logger.error(`Failed to create a lot for user ${user.email}. Data: ${createLotDto}`, error.stack);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(`Failed to create a lot for user ${user.email}. Data: ${createLotDto}`, error.stack);
     }
     return lot;
   }
@@ -73,11 +71,7 @@ export class LotRepository extends Repository<Lot> {
         .orderBy('lot.createdAt', 'DESC')
         .getMany();
     } catch (error) {
-      this.logger.error(
-        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(filterDto)}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(`Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(filterDto)}`, error.stack);
     }
   }
 
@@ -95,11 +89,7 @@ export class LotRepository extends Repository<Lot> {
         .orderBy('lot.createdAt', 'DESC')
         .getMany();
     } catch (error) {
-      this.logger.error(
-        `Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(filterDto)}`,
-        error.stack,
-      );
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(`Failed to get lots for user "${user.email}". Filters: ${JSON.stringify(filterDto)}`, error.stack);
     }
   }
 }
