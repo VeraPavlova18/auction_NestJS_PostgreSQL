@@ -47,7 +47,8 @@ describe('BidsController (e2e)', () => {
         .send({ proposedPrice: 2 })
         .expect(400)
         .expect(({ body }) => {
-          expect(body.error).toEqual('proposedPrice: 2 must be equal or greater then lot curentPrice: 5 and less or equal then estimatedPrice: 555');
+          expect(body.error)
+              .toEqual('proposedPrice: 2 must be equal or greater then lot curentPrice: 5 and less or equal then estimatedPrice: 555');
         });
     });
 
@@ -180,5 +181,4 @@ describe('BidsController (e2e)', () => {
         });
     });
   });
-
 });

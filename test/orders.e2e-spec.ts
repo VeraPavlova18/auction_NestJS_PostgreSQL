@@ -76,7 +76,8 @@ describe('OrdersController (e2e)', () => {
         .send({ arrivalLocation: 'my adress', arrivalType: 'not from ArrivalType' })
         .expect(400)
         .expect(({ body }) => {
-          expect(body.message[0].constraints.isIn).toEqual('arrivalType must be one of the following values: DHL_EXPRESS,ROYAL_MAIL,UNITED_STATES_POSTAL_SERVICE');
+          expect(body.message[0].constraints.isIn)
+                .toEqual('arrivalType must be one of the following values: DHL_EXPRESS,ROYAL_MAIL,UNITED_STATES_POSTAL_SERVICE');
         });
     });
 
@@ -106,6 +107,7 @@ describe('OrdersController (e2e)', () => {
       await client
         .patch(`/lots/${lotsExist[0].id}/order/`)
         .set('Authorization', `Bearer ${accessToken1}`)
+        .send({ arrivalLocation: '' })
         .expect(400)
         .expect(({ body }) => {
           expect(body.message[0].constraints.isNotEmpty).toEqual('arrivalLocation should not be empty');

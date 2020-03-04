@@ -11,7 +11,7 @@ import { LotStatus } from './lot-status.enum';
 import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
 import { UpdateLotDto } from './dto/update-lot.dto copy';
-import { MyLogger } from 'src/logger/my-logger.service';
+import { MyLogger } from '../logger/my-logger.service';
 
 @Injectable()
 export class LotsService {
@@ -61,15 +61,15 @@ export class LotsService {
   }
 
   async createLot(createLotDto: CreateLotDto, user: User, img: globalThis.Express.Multer.File): Promise<Lot> {
-    return this.lotRepository.createLot(createLotDto, user, img);
+    return await this.lotRepository.createLot(createLotDto, user, img);
   }
 
   async getMyLots(filterDto: GetMyLotsFilterDto, user: User): Promise<Lot[]> {
-    return this.lotRepository.getMyLots(filterDto, user);
+    return await this.lotRepository.getMyLots(filterDto, user);
   }
 
   async getLots(filterDto: GetLotsFilterDto, user: User): Promise<Lot[]> {
-    return this.lotRepository.getLots(filterDto, user);
+    return await this.lotRepository.getLots(filterDto, user);
   }
 
   async getLotById(id: number, user: User): Promise<Lot> {

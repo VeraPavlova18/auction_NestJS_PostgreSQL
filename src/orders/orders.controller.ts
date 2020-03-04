@@ -17,6 +17,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { User } from '../auth/user.entity';
 import { Order } from './order.entity';
 import { OrderStatus } from './order-status.enum';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Controller('lots/:id/order')
 @UseGuards(AuthGuard('jwt'))
@@ -61,9 +62,9 @@ export class OrdersController {
   @UsePipes(ValidationPipe)
   updateOrder(
     @Param('id', ParseIntPipe) id: number,
-    @Body() createOrderDto: CreateOrderDto,
+    @Body() updateOrderDto: UpdateOrderDto,
     @GetUser() user: User,
   ): Promise<Order> {
-    return this.ordersService.updateOrder(id, createOrderDto, user);
+    return this.ordersService.updateOrder(id, updateOrderDto, user);
   }
 }

@@ -17,7 +17,7 @@ import { CreateBidDto } from './dto/create-bid.dto';
 import { User } from '../auth/user.entity';
 import { GetUser } from '../auth/get-user.decorator';
 import { Bid } from './bid.entity';
-import { MyLogger } from 'src/logger/my-logger.service';
+import { MyLogger } from '../logger/my-logger.service';
 
 @Controller('lots/:id/bids')
 @UseGuards(AuthGuard('jwt'))

@@ -8,7 +8,7 @@ import { Bid } from './bid.entity';
 import { CreateBidDto } from './dto/create-bid.dto';
 import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
-import { MyLogger } from 'src/logger/my-logger.service';
+import { MyLogger } from '../logger/my-logger.service';
 
 @Injectable()
 export class BidsService {
@@ -18,7 +18,7 @@ export class BidsService {
     private bidRepository: BidRepository,
     private sendEmailService: SendEmailService,
     private dbqueries: DBqueries,
-    private gateway: AppGateway,
+    // private gateway: AppGateway,
     private readonly myLogger: MyLogger,
   ) {
     this.myLogger.setContext('BidsService');
@@ -26,7 +26,7 @@ export class BidsService {
 
   async createBid(user: User, createBidDto: CreateBidDto, id: number): Promise<Bid> {
     const bid = await this.bidRepository.createBid(user, createBidDto, id);
-    this.gateway.wss.emit('newBid', bid);
+    // this.gateway.wss.emit('newBid', bid);
     const lot = await this.dbqueries.getLot(id);
     const maxBid = +bid.proposedPrice;
 
@@ -55,6 +55,6 @@ export class BidsService {
   }
 
   async getBidsByLotId(user: User, id: number): Promise<Bid[]> {
-    return this.bidRepository.getBids(user, id);
+    return await this.bidRepository.getBids(user, id);
   }
 }

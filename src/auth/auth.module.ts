@@ -7,7 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
 import { SendEmailService } from '../mail/sendEmailService';
-import { MyLogger } from 'src/logger/my-logger.service';
+import { MyLogger } from '../logger/my-logger.service';
 
 @Module({
   imports: [

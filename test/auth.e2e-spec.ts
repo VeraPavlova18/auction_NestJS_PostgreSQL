@@ -23,7 +23,11 @@ describe('AuthController (e2e)', () => {
       await client
         .post('/auth/signup')
         .send(users[0])
-        .expect(201);
+        .expect(201)
+        .expect(({ body }) => {
+          expect(body.password).toEqual(undefined);
+          expect(body.email).toEqual(users[0].email);
+        });
 
       usersExist = await userRepository.query(`SELECT * FROM "user"`);
       expect(usersExist[0].email).toEqual(users[0].email);
@@ -33,10 +37,10 @@ describe('AuthController (e2e)', () => {
       await client
         .post('/auth/signup')
         .send(users[0])
-        .expect(409)
+        .expect(400)
         .expect(({ body }) => {
           expect(body.message).toEqual(
-            `Key (email)=(${users[0].email}) already exists.`,
+            `User with email: ${users[0].email} already exist!`,
           );
         });
     });
@@ -45,10 +49,10 @@ describe('AuthController (e2e)', () => {
       await client
         .post('/auth/signup')
         .send(users[1])
-        .expect(409)
+        .expect(400)
         .expect(({ body }) => {
           expect(body.message).toEqual(
-            `Key (phone)=(${users[1].phone}) already exists.`,
+            `User with phone: ${users[1].phone} already exist!`,
           );
         });
     });
@@ -156,16 +160,15 @@ describe('AuthController (e2e)', () => {
           );
         });
     });
+  });
 
-    describe('Get /auth/confirm/:confirmToken', () => {
-      it('should confirmed an exist user', async () => {
-        await client
-          .get(`/auth/confirm/${usersExist[0].confirmToken}`)
-          .expect(200)
-          .expect(({ body }) => {
-            expect(body.isconfirm).toEqual(true);
-          });
-      });
+  describe('Get /auth/confirm/:confirmToken', () => {
+    it('should confirmed an exist user', async () => {
+      await client
+        .get(`/auth/confirm/${usersExist[0].confirmToken}`)
+        .expect(200);
+      usersExist = await userRepository.query(`SELECT * FROM "user"`);
+      expect(usersExist[0].isconfirm).toEqual(true);
     });
 
     it('should return token for exist user', async () => {
@@ -215,16 +218,11 @@ describe('AuthController (e2e)', () => {
       await client
         .post(`/auth/recovery-pass/${usersExist[0].confirmToken}`)
         .send({ password: 'Qwerty123456', confirmPassword: 'Qwerty123456' })
-        .expect(201)
-        .expect(async ({ body }) => {
-          expect(body.accessToken).not.toBeUndefined();
-          const usersExistWithNewPass = await userRepository.query(
-            `SELECT * FROM "user"`,
-          );
-          expect(usersExistWithNewPass[0].password).not.toEqual(
-            usersExist[0].password,
-          );
-        });
+        .expect(201);
+
+      const usersExistWithNewPass = await userRepository.query(`SELECT * FROM "user"`);
+      expect(usersExistWithNewPass[0].accessToken).toBeUndefined();
+      expect(usersExistWithNewPass[0].password).not.toEqual(usersExist[0].password);
     });
 
     it('it should not changePass and return token if user not exist', async () => {

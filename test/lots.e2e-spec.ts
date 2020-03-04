@@ -70,9 +70,7 @@ describe('LotsController (e2e)', () => {
         .send(lots[1])
         .expect(400)
         .expect(({ body }) => {
-          expect(body.message[0].constraints.IsMoreThan).toEqual(
-            `End Time must be later than start Time`,
-          );
+          expect(body.message[0].constraints.IsMoreThan).toEqual(`End Time must be later than start Time`);
         });
     });
 
@@ -83,9 +81,7 @@ describe('LotsController (e2e)', () => {
         .send(lots[2])
         .expect(400)
         .expect(({ body }) => {
-          expect(body.message[0].constraints.minDate).toContain(
-            `minimal allowed date for startTime is`,
-          );
+          expect(body.message[0].constraints.minDate).toContain(`minimal allowed date for startTime is`);
         });
     });
 
@@ -96,9 +92,7 @@ describe('LotsController (e2e)', () => {
         .send(lots[3])
         .expect(400)
         .expect(({ body }) => {
-          expect(body.message[0].constraints.IsMoreThan).toEqual(
-            `EstimatedPrice must be more than curentPrice`,
-          );
+          expect(body.message[0].constraints.IsMoreThan).toEqual(`EstimatedPrice must be more than curentPrice`);
         });
     });
 
@@ -109,9 +103,7 @@ describe('LotsController (e2e)', () => {
         .send(lots[4])
         .expect(400)
         .expect(({ body }) => {
-          expect(body.message[0].constraints.isPositive).toEqual(
-            `curentPrice must be a positive number`,
-          );
+          expect(body.message[0].constraints.isPositive).toEqual(`curentPrice must be a positive number`);
         });
     });
   });
@@ -141,7 +133,8 @@ describe('LotsController (e2e)', () => {
         .set('Authorization', `Bearer ${accessToken1}`)
         .expect(200)
         .expect(({ body }) => {
-          expect(body[0].userId).toEqual(usersExist[0].id);
+          expect(body[0].userId).toEqual(undefined);
+          expect(body.length).toEqual(1);
         });
     });
 
