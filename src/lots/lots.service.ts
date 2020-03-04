@@ -6,58 +6,24 @@ import { Lot } from './lot.entity';
 import { User } from '../auth/user.entity';
 import { GetMyLotsFilterDto } from './dto/get-myLots-filter.dto';
 import { GetLotsFilterDto } from './dto/get-Lots-filter.dto';
-import { Cron } from '@nestjs/schedule';
 import { LotStatus } from './lot-status.enum';
-import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
 import { UpdateLotDto } from './dto/update-lot.dto copy';
 import { MyLogger } from '../logger/my-logger.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 
 @Injectable()
 export class LotsService {
   constructor(
-    @InjectRepository(LotRepository)
-    private lotRepository: LotRepository,
-    private sendEmailService: SendEmailService,
+    @InjectRepository(LotRepository) private lotRepository: LotRepository,
+    @InjectQueue('lots') private readonly lotsQueue: Queue,
     private dbqueries: DBqueries,
     private readonly myLogger: MyLogger,
-    ) {
+  ) {
+      const cron = '0 * * * * *';
       this.myLogger.setContext('LotsService');
-    }
-
-  @Cron('0 * * * * *')
-  async handleCron() {
-    const lotsInProcess = await this.dbqueries.getLotsWhere(`"startTime" <= now() AND "endTime" > now() AND status = 'PENDING'`);
-    await Promise.all(lotsInProcess.map(lot => this.dbqueries.changeLotsStatus(LotStatus.IN_PROCESS, `lot.id = :id`, { id: lot.id })));
-
-    const lotsClosed = await this.dbqueries.getLotsWhere(`"endTime" <= now() AND status != 'CLOSED'`);
-    await Promise.all(lotsClosed.map(lot => this.dbqueries.changeLotsStatus(LotStatus.CLOSED, `lot.id = :id`, { id: lot.id })));
-
-    if (lotsClosed.length > 0) {
-      lotsClosed.map(async lot => {
-        const owner = await this.dbqueries.getLotOwner(lot);
-        const maxBid = await this.dbqueries.getMaxBidPrice(lot.id);
-
-        if (maxBid) {
-          const ownerOfMaxBid = await this.dbqueries.getOwnerOfMaxBidOfLot(maxBid);
-          this.sendEmailService.sendEmailToTheBidsWinner(
-            ownerOfMaxBid.email,
-            ownerOfMaxBid.firstName,
-            lot.title,
-            maxBid,
-            `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-          );
-        }
-
-        this.sendEmailService.sendEmailToTheLotOwner(
-          owner.email,
-          owner.firstName,
-          lot.title,
-          maxBid || lot.curentPrice,
-          `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-        );
-      });
-    }
+      this.lotsQueue.add({}, { priority: 1, repeat: { cron } });
   }
 
   async createLot(createLotDto: CreateLotDto, user: User, img: globalThis.Express.Multer.File): Promise<Lot> {

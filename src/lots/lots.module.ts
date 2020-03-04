@@ -7,10 +7,22 @@ import { AuthModule } from '../auth/auth.module';
 import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
 import { MyLogger } from '../logger/my-logger.service';
+import { BullModule } from '@nestjs/bull';
+import { LotsProcessor } from './lots.processor';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([LotRepository]), AuthModule],
+  imports: [
+    TypeOrmModule.forFeature([LotRepository]),
+    BullModule.registerQueue({
+      name: 'lots',
+      redis: {
+        host: process.env.host,
+        port: 6379,
+      },
+    }),
+    AuthModule,
+  ],
   controllers: [LotsController],
-  providers: [LotsService, SendEmailService, DBqueries, MyLogger],
+  providers: [LotsService, SendEmailService, DBqueries, MyLogger, LotsProcessor],
 })
 export class LotsModule {}
