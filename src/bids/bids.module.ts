@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-// import { AppGateway } from '../app.gateway';
+import { AppGateway } from '../app.gateway';
 import { AuthModule } from '../auth/auth.module';
 import { BidRepository } from './bid.repository';
 import { BidsService } from './bids.service';
@@ -15,7 +15,7 @@ import { MyLogger } from '../logger/my-logger.service';
   controllers: [BidsController],
   providers: [
     BidsService,
-    // AppGateway,
+    AppGateway,
     SendEmailService,
     DBqueries,
     MyLogger],

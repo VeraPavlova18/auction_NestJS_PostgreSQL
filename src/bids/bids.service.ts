@@ -18,7 +18,7 @@ export class BidsService {
     private bidRepository: BidRepository,
     private sendEmailService: SendEmailService,
     private dbqueries: DBqueries,
-    // private gateway: AppGateway,
+    private gateway: AppGateway,
     private readonly myLogger: MyLogger,
   ) {
     this.myLogger.setContext('BidsService');
@@ -26,7 +26,7 @@ export class BidsService {
 
   async createBid(user: User, createBidDto: CreateBidDto, id: number): Promise<Bid> {
     const bid = await this.bidRepository.createBid(user, createBidDto, id);
-    // this.gateway.wss.emit('newBid', bid);
+    this.gateway.wss.emit('newBid', bid);
     const lot = await this.dbqueries.getLot(id);
     const maxBid = +bid.proposedPrice;
 
