@@ -54,7 +54,7 @@ export class BidRepository extends Repository<Bid> {
 
           const bid = new Bid();
           bid.proposedPrice = proposedPrice;
-          bid.creationTime = moment().toDate();
+          bid.creationTime = moment.utc().toDate();
           bid.userId = user.id;
           bid.lotId = id;
           await transactionalEntityManager.save(bid);

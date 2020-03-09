@@ -31,6 +31,7 @@ import { MyLogger } from '../logger/my-logger.service';
 
 @Controller('lots')
 @UseGuards(AuthGuard('jwt'))
+@UseInterceptors(ClassSerializerInterceptor)
 export class LotsController {
 
   constructor(
@@ -47,28 +48,24 @@ export class LotsController {
       storage: diskStorage({ destination: './static/files', filename: editFileName }),
       fileFilter: imageFileFilter,
     }),
-    ClassSerializerInterceptor,
   )
   createLot(@Body() createLotDto: CreateLotDto, @GetUser() user: User, @UploadedFile() img): Promise<Lot> {
     return this.lotsService.createLot(createLotDto, user, img);
   }
 
   @Get('/my')
-  @UseInterceptors(ClassSerializerInterceptor)
   getMyLots(@Query(ValidationPipe) filterDto: GetMyLotsFilterDto, @GetUser() user: User): Promise<Lot[]> {
     this.myLogger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
     return this.lotsService.getMyLots(filterDto, user);
   }
 
   @Get()
-  @UseInterceptors(ClassSerializerInterceptor)
   getLots(@Query(ValidationPipe) filterDto: GetLotsFilterDto, @GetUser() user: User): Promise<Lot[]> {
     this.myLogger.verbose(`User "${user.email}" retrieving all lots. Filters: ${JSON.stringify(filterDto)}`);
     return this.lotsService.getLots(filterDto, user);
   }
 
   @Get('/:id')
-  @UseInterceptors(ClassSerializerInterceptor)
   getLotById(@Param('id', ParseIntPipe) id: number, @GetUser() user: User): Promise<Lot> {
     return this.lotsService.getLotById(id, user);
   }
@@ -79,7 +76,6 @@ export class LotsController {
   }
 
   @Patch(':id/edit')
-  @UseInterceptors(ClassSerializerInterceptor)
   @UsePipes(ValidationPipe)
   updateLot(
     @Param('id', ParseIntPipe) id: number,

@@ -21,6 +21,7 @@ import { MyLogger } from '../logger/my-logger.service';
 
 @Controller('lots/:id/bids')
 @UseGuards(AuthGuard('jwt'))
+@UseInterceptors(ClassSerializerInterceptor)
 export class BidsController {
 
   constructor(
@@ -31,7 +32,6 @@ export class BidsController {
   }
 
   @Post()
-  @UseInterceptors(ClassSerializerInterceptor)
   @UsePipes(ValidationPipe)
   createBid(
     @GetUser() user: User,
@@ -42,7 +42,6 @@ export class BidsController {
   }
 
   @Get()
-  @UseInterceptors(ClassSerializerInterceptor)
   getBidsByLotId(
     @GetUser() user: User,
     @Param('id', ParseIntPipe) id: number,

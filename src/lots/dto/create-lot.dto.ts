@@ -12,7 +12,7 @@ export class CreateLotDto {
 
   @IsNotEmpty()
   @IsDate()
-  @MinDate(moment().toDate())
+  @MinDate(moment.utc().toDate())
   @Type(() => Date)
   startTime: Date;
 

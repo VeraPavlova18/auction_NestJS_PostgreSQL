@@ -39,7 +39,7 @@ export class AuthDto {
   @IsNotEmpty()
   @IsDate()
   @MaxDate(
-    moment()
+    moment.utc()
       .subtract(21, 'years')
       .toDate(),
   )

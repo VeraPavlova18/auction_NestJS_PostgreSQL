@@ -15,7 +15,7 @@ export class UpdateLotDto {
   @IsOptional()
   @IsNotEmpty()
   @IsDate()
-  @MinDate(moment().toDate())
+  @MinDate(moment.utc().toDate())
   @Type(() => Date)
   startTime: Date;
 

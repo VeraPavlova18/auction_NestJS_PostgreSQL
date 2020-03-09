@@ -12,22 +12,27 @@ import { UpdateLotDto } from './dto/update-lot.dto copy';
 import { MyLogger } from '../logger/my-logger.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
+import * as moment from 'moment';
 
 @Injectable()
 export class LotsService {
   constructor(
     @InjectRepository(LotRepository) private lotRepository: LotRepository,
-    @InjectQueue('lots') private readonly lotsQueue: Queue,
+    @InjectQueue('lots') private readonly queue: Queue,
     private dbqueries: DBqueries,
     private readonly myLogger: MyLogger,
-  ) {
-      const cron = '0 * * * * *';
-      this.myLogger.setContext('LotsService');
-      this.lotsQueue.add({}, { priority: 1, repeat: { cron } });
-  }
+  ) { this.myLogger.setContext('LotsService'); }
 
   async createLot(createLotDto: CreateLotDto, user: User, img: globalThis.Express.Multer.File): Promise<Lot> {
-    return await this.lotRepository.createLot(createLotDto, user, img);
+    const lot  = await this.lotRepository.createLot(createLotDto, user, img);
+    const lotStartTime = moment.utc(lot.startTime);
+    const lotCloseTime = moment.utc(lot.endTime);
+    const now = moment.utc();
+    const timeToStart = lotStartTime.diff(now, 'milliseconds');
+    const timeToClose = lotCloseTime.diff(now, 'milliseconds');
+    await this.queue.add('startLot', {lotId: lot.id}, { delay: timeToStart });
+    await this.queue.add('closeLot', {lotId: lot.id}, { delay: timeToClose });
+    return lot;
   }
 
   async getMyLots(filterDto: GetMyLotsFilterDto, user: User): Promise<Lot[]> {

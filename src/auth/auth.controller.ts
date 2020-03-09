@@ -6,11 +6,11 @@ import { User } from './user.entity';
 import { ChangePassDto } from './dto/change-pass.dto';
 
 @Controller('auth')
+@UseInterceptors(ClassSerializerInterceptor)
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/signup')
-  @UseInterceptors(ClassSerializerInterceptor)
   async signUp(@Body(ValidationPipe) authDto: AuthDto): Promise<User> {
     return this.authService.signUp(authDto);
   }
@@ -21,7 +21,6 @@ export class AuthController {
   }
 
   @Get('/confirm/:confirmToken')
-  @UseInterceptors(ClassSerializerInterceptor)
   confirmUser(@Param('confirmToken') confirmToken: string): Promise<User> {
     return this.authService.confirmUser(confirmToken);
   }

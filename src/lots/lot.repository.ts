@@ -26,7 +26,7 @@ export class LotRepository extends Repository<Lot> {
     lot.curentPrice = curentPrice;
     lot.estimatedPrice = estimatedPrice;
     lot.status = LotStatus.PENDING;
-    lot.createdAt = moment().toDate();
+    lot.createdAt = moment.utc().toDate();
     lot.user = user;
     lot.image = img ? img.path.split('/').slice(1).join('/') : '';
 
