@@ -11,7 +11,7 @@ import { DBqueries } from '../db.queries';
 import { UpdateLotDto } from './dto/update-lot.dto copy';
 import { MyLogger } from '../logger/my-logger.service';
 import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { Queue, Job } from 'bull';
 import * as moment from 'moment';
 
 @Injectable()
@@ -23,15 +23,26 @@ export class LotsService {
     private readonly myLogger: MyLogger,
   ) { this.myLogger.setContext('LotsService'); }
 
-  async createLot(createLotDto: CreateLotDto, user: User, img: globalThis.Express.Multer.File): Promise<Lot> {
-    const lot  = await this.lotRepository.createLot(createLotDto, user, img);
+  async addLotJobs(lot: Lot): Promise<void> {
     const lotStartTime = moment.utc(lot.startTime);
     const lotCloseTime = moment.utc(lot.endTime);
     const now = moment.utc();
     const timeToStart = lotStartTime.diff(now, 'milliseconds');
     const timeToClose = lotCloseTime.diff(now, 'milliseconds');
-    await this.queue.add('startLot', {lotId: lot.id}, { delay: timeToStart });
-    await this.queue.add('closeLot', {lotId: lot.id}, { delay: timeToClose });
+    await this.queue.add('startLot', {lotId: lot.id}, { delay: timeToStart, jobId: `startLot${lot.id}` });
+    await this.queue.add('closeLot', {lotId: lot.id}, { delay: timeToClose, jobId: `closeLot${lot.id}` });
+  }
+
+  async removeLotJobs(lot: Lot): Promise<void> {
+    const jobToStart: Job = await this.queue.getJob(`startLot${lot.id}`);
+    const jobToEnd: Job = await this.queue.getJob(`closeLot${lot.id}`);
+    await jobToStart.remove();
+    await jobToEnd.remove();
+  }
+
+  async createLot(createLotDto: CreateLotDto, user: User, img: globalThis.Express.Multer.File): Promise<Lot> {
+    const lot  = await this.lotRepository.createLot(createLotDto, user, img);
+    this.addLotJobs(lot);
     return lot;
   }
 
@@ -72,6 +83,7 @@ export class LotsService {
 
     try {
       await this.lotRepository.delete(lot);
+      this.removeLotJobs(lot);
       this.myLogger.verbose(`User "${user.email}" deleted lot with ID "${id}".`);
     } catch (error) {
       throw new InternalServerErrorException();
@@ -103,6 +115,8 @@ export class LotsService {
 
     try {
       await lot.save();
+      this.removeLotJobs(lot);
+      this.addLotJobs(lot);
     } catch (error) {
       throw new InternalServerErrorException();
     }

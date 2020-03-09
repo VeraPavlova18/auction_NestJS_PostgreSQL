@@ -4,6 +4,7 @@ import { DBqueries } from 'src/db.queries';
 import { MyLogger } from 'src/logger/my-logger.service';
 import { LotStatus } from './lot-status.enum';
 import { Job } from 'bull';
+import * as uuidv4 from 'uuid/v4';
 
 @Processor('lots')
 export class LotsProcessor {
