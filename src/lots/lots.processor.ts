@@ -1,10 +1,9 @@
 import { Process, Processor } from '@nestjs/bull';
-import { SendEmailService } from 'src/mail/sendEmailService';
-import { DBqueries } from 'src/db.queries';
-import { MyLogger } from 'src/logger/my-logger.service';
+import { SendEmailService } from '../mail/sendEmailService';
+import { DBqueries } from '../db.queries';
+import { MyLogger } from '../logger/my-logger.service';
 import { LotStatus } from './lot-status.enum';
 import { Job } from 'bull';
-import * as uuidv4 from 'uuid/v4';
 
 @Processor('lots')
 export class LotsProcessor {

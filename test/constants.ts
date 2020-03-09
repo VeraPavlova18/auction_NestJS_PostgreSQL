@@ -131,4 +131,12 @@ export const lots: CreateLotDto[] = [
     curentPrice: 6,
     estimatedPrice: 666,
   },
+  {
+    title: 'title example7',
+    description: 'description ex7',
+    startTime: moment.utc().add(2, 'm').toDate(),
+    endTime:  moment.utc().add(4, 'm').toDate(),
+    curentPrice: 6,
+    estimatedPrice: 666,
+  },
 ];

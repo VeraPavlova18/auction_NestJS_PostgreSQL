@@ -36,8 +36,8 @@ export class LotsService {
   async removeLotJobs(lot: Lot): Promise<void> {
     const jobToStart: Job = await this.queue.getJob(`startLot${lot.id}`);
     const jobToEnd: Job = await this.queue.getJob(`closeLot${lot.id}`);
-    await jobToStart.remove();
-    await jobToEnd.remove();
+    if (jobToStart) { await jobToStart.remove(); }
+    if (jobToEnd) { await jobToEnd.remove(); }
   }
 
   async createLot(createLotDto: CreateLotDto, user: User, img: globalThis.Express.Multer.File): Promise<Lot> {
