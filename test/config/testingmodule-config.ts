@@ -18,6 +18,7 @@ import { UserRepository } from '../../src/auth/user.repository';
 import { LotRepository } from '../../src/lots/lot.repository';
 import { BidRepository } from '../../src/bids/bid.repository';
 import { OrderRepository } from '../../src/orders/order.repository';
+import { LotsProcessor } from '../../src/lots/lots.processor';
 
 let app: INestApplication;
 let client;
@@ -25,6 +26,7 @@ let authRepository;
 let lotRepository;
 let bidRepository;
 let orderRepository;
+let lotsProcessor;
 
 export async function createTestingAppModule() {
   if (!app) {
@@ -43,13 +45,14 @@ export async function createTestingAppModule() {
     }).compile();
 
     app = module.createNestApplication();
-    authRepository = await module.get<UserRepository>(UserRepository);
-    lotRepository = await module.get<LotRepository>(LotRepository);
-    bidRepository = await module.get<BidRepository>(BidRepository);
-    orderRepository = await module.get<OrderRepository>(OrderRepository);
+    authRepository = module.get<UserRepository>(UserRepository);
+    lotRepository = module.get<LotRepository>(LotRepository);
+    bidRepository = module.get<BidRepository>(BidRepository);
+    orderRepository = module.get<OrderRepository>(OrderRepository);
+    lotsProcessor = module.get<LotsProcessor>(LotsProcessor);
     await app.init();
     client = supertest.agent(app.getHttpServer());
   }
 
-  return { app, client, authRepository, lotRepository, bidRepository, orderRepository };
+  return { app, client, authRepository, lotRepository, bidRepository, orderRepository, lotsProcessor };
 }
