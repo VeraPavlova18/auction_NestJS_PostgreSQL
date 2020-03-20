@@ -13,6 +13,7 @@ import { MyLogger } from '../logger/my-logger.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue, Job } from 'bull';
 import * as moment from 'moment';
+import Stripe from 'stripe';
 
 @Injectable()
 export class LotsService {
@@ -121,5 +122,45 @@ export class LotsService {
       throw new InternalServerErrorException();
     }
     return lot;
+  }
+
+  async getLotPayment(id: number, user: User): Promise<any> {
+    const stripe = new Stripe('sk_test_2xfPRU3apxfsqSs5hrR8CDeO009wcjKI4O', {
+      apiVersion: '2020-03-02',
+    });
+    const lot = await this.getLotById(id, user);
+    const price = await this.dbqueries.getMaxBidPrice(id);
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        payment_intent_data: {
+          setup_future_usage: 'on_session',
+        },
+        customer: 'cus_GwKpZGBeeX4d3a',
+        line_items: [
+          {
+            name: lot.title,
+            description: lot.description,
+            amount: price * 100,
+            currency: 'usd',
+            quantity: 1,
+          },
+        ],
+        metadata: {
+          lotId: id,
+        },
+        success_url: `http://localhost:3000/lots/${id}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `http://localhost:3000/lots/${id}/payment/cancel`,
+      });
+
+      this.myLogger.verbose(session);
+      stripe.paymentIntents.update(session.payment_intent as string, {
+        payment_method: 'pm_1GOS9jC3nAhFVutWimDDvbYd',
+      });
+
+      return session;
+    } catch (e) {
+      this.myLogger.verbose(e);
+    }
   }
 }
