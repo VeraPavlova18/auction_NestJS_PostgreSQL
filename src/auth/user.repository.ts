@@ -6,11 +6,15 @@ import { AuthDto } from './dto/auth.dto';
 import { SignInDto } from './dto/signIn.dto';
 import * as uuidv4 from 'uuid/v4';
 import { ChangePassDto } from './dto/change-pass.dto';
+import Stripe from 'stripe';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
 
   async signUp(authDto: AuthDto): Promise<User> {
+    const stripe = new Stripe('sk_test_2xfPRU3apxfsqSs5hrR8CDeO009wcjKI4O', { apiVersion: '2020-03-02' });
+    const customer = await stripe.customers.create();
+
     const { firstName, lastName, email, phone, birthday, password } = authDto;
     const user = new User();
     user.firstName = firstName;
@@ -22,6 +26,7 @@ export class UserRepository extends Repository<User> {
     user.password = await this.hashPassword(password, user.salt);
     user.confirmToken = uuidv4();
     user.isconfirm = false;
+    user.customerId = customer.id;
 
     const isEmailExist = await this.findOne({ email: user.email });
     if (isEmailExist) { throw new BadRequestException(`User with email: ${user.email} already exist!`); }

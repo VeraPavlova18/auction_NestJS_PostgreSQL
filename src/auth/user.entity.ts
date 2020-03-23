@@ -51,6 +51,12 @@ export class User extends BaseEntity {
   @Column()
   isconfirm: boolean;
 
+  @Exclude({ toPlainOnly: true })
+  @Column({
+    nullable: true,
+  })
+  customerId: string;
+
   @OneToMany(
     type => Lot,
     lot => lot.user,

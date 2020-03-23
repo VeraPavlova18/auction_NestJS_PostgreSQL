@@ -111,23 +111,13 @@ export class LotsController {
     @Param('id', ParseIntPipe) id: number,
     @Query() query: any,
   ): Promise<string> {
-    this.myLogger.verbose(`User has successfully paid for the lot with id: ${id}`);
+    this.myLogger.verbose(`User payment was successful for the lot with id: ${id}`);
     return 'Your payment was successful';
-    // const stripe = new Stripe('sk_test_2xfPRU3apxfsqSs5hrR8CDeO009wcjKI4O', { apiVersion: '2020-03-02' });
-    // this.myLogger.verbose(query.session_id);
-    // const session = await stripe.checkout.sessions.retrieve(query.session_id);
-    // this.myLogger.verbose(session);
-    // const payment = await stripe.paymentMethods.list({
-    //   customer: session.customer as string,
-    //   type: 'card',
-    // });
-    // this.myLogger.verbose(payment);
   }
 
   @Get('/:id/payment/cancel')
   sancel(@Param('id', ParseIntPipe) id: number): string {
-    this.myLogger.verbose(
-      `User did not pay for the lot with identifier: ${id}`,
+    this.myLogger.verbose(`User have canceled payment for the lot with identifier: ${id}`,
     );
     return 'You have canceled payment';
   }

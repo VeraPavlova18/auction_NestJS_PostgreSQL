@@ -6,7 +6,8 @@
       name="viewport"
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
-    <title>Lot page</title>    
+    <title>Lot page</title> 
+    <script src="https://js.stripe.com/v3/"></script>   
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
     <link
       rel="stylesheet"
@@ -27,9 +28,12 @@
         </thead>
         <tbody id='lotInfo'></tbody>
       </table>
-      <button id="buy-button">Pay</button>
-    </div> 
-    <script src="https://js.stripe.com/v3/"></script>
+      <form id="payment-form">
+        <div id="card-element"></div>
+        <div id="card-errors" role="alert"></div>      
+        <button id="submit">Pay</button>
+      </form>
+    </div>     
     <script src="lotJS.js"></script> 
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

@@ -125,42 +125,28 @@ export class LotsService {
   }
 
   async getLotPayment(id: number, user: User): Promise<any> {
-    const stripe = new Stripe('sk_test_2xfPRU3apxfsqSs5hrR8CDeO009wcjKI4O', {
-      apiVersion: '2020-03-02',
-    });
-    const lot = await this.getLotById(id, user);
+    const stripe = new Stripe('sk_test_2xfPRU3apxfsqSs5hrR8CDeO009wcjKI4O', { apiVersion: '2020-03-02' });
     const price = await this.dbqueries.getMaxBidPrice(id);
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: user.customerId,
+      type: 'card',
+    });
     try {
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        payment_intent_data: {
-          setup_future_usage: 'on_session',
-        },
-        customer: 'cus_GwKpZGBeeX4d3a',
-        line_items: [
-          {
-            name: lot.title,
-            description: lot.description,
-            amount: price * 100,
-            currency: 'usd',
-            quantity: 1,
-          },
-        ],
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: price * 1000,
+        currency: 'usd',
+        customer: user.customerId,
+        // payment_method: paymentMethods.data[0].id,
+        // off_session: true,
+        // confirm: true,
+        // return_url: `http://localhost:3000/lots/${id}/payment/success`,
         metadata: {
-          lotId: id,
+          integration_check: 'accept_a_payment',
         },
-        success_url: `http://localhost:3000/lots/${id}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `http://localhost:3000/lots/${id}/payment/cancel`,
       });
-
-      this.myLogger.verbose(session);
-      stripe.paymentIntents.update(session.payment_intent as string, {
-        payment_method: 'pm_1GOS9jC3nAhFVutWimDDvbYd',
-      });
-
-      return session;
+      return paymentIntent;
     } catch (e) {
-      this.myLogger.verbose(e);
+      throw new InternalServerErrorException();
     }
   }
 }
