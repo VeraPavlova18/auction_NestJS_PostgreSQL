@@ -55,6 +55,12 @@ export class User extends BaseEntity {
   @Column({
     nullable: true,
   })
+  isBanned: boolean;
+
+  @Exclude({ toPlainOnly: true })
+  @Column({
+    nullable: true,
+  })
   customerId: string;
 
   @OneToMany(

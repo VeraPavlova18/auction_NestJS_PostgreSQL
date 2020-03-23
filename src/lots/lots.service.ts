@@ -13,7 +13,7 @@ import { MyLogger } from '../logger/my-logger.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue, Job } from 'bull';
 import * as moment from 'moment';
-import Stripe from 'stripe';
+import { PaymentService } from '../payment/paymentService';
 
 @Injectable()
 export class LotsService {
@@ -21,6 +21,7 @@ export class LotsService {
     @InjectRepository(LotRepository) private lotRepository: LotRepository,
     @InjectQueue('lots') private readonly queue: Queue,
     private dbqueries: DBqueries,
+    private paymentService: PaymentService,
     private readonly myLogger: MyLogger,
   ) { this.myLogger.setContext('LotsService'); }
 
@@ -125,28 +126,7 @@ export class LotsService {
   }
 
   async getLotPayment(id: number, user: User): Promise<any> {
-    const stripe = new Stripe('sk_test_2xfPRU3apxfsqSs5hrR8CDeO009wcjKI4O', { apiVersion: '2020-03-02' });
     const price = await this.dbqueries.getMaxBidPrice(id);
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: user.customerId,
-      type: 'card',
-    });
-    try {
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: price * 1000,
-        currency: 'usd',
-        customer: user.customerId,
-        // payment_method: paymentMethods.data[0].id,
-        // off_session: true,
-        // confirm: true,
-        // return_url: `http://localhost:3000/lots/${id}/payment/success`,
-        metadata: {
-          integration_check: 'accept_a_payment',
-        },
-      });
-      return paymentIntent;
-    } catch (e) {
-      throw new InternalServerErrorException();
-    }
+    return this.paymentService.paymentIntent(price, user);
   }
 }

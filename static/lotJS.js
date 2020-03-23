@@ -58,9 +58,7 @@ async function getPay() {
   form.addEventListener('submit', function(ev) {
     ev.preventDefault();
     stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: card,
-      },
+      payment_method: { card },
       setup_future_usage: 'off_session'
     }).then(function(result) {
       console.log(result)

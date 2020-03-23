@@ -39,7 +39,7 @@ export class LotRepository extends Repository<Lot> {
   }
 
   async getMyBids(user: User): Promise<Bid[]> {
-    return await getConnection()
+    return getConnection()
       .createQueryBuilder()
       .select('bid')
       .from(Bid, 'bid')

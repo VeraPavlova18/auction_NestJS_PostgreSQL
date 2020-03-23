@@ -12,7 +12,7 @@ import Stripe from 'stripe';
 export class UserRepository extends Repository<User> {
 
   async signUp(authDto: AuthDto): Promise<User> {
-    const stripe = new Stripe('sk_test_2xfPRU3apxfsqSs5hrR8CDeO009wcjKI4O', { apiVersion: '2020-03-02' });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2020-03-02' });
     const customer = await stripe.customers.create();
 
     const { firstName, lastName, email, phone, birthday, password } = authDto;
@@ -26,6 +26,7 @@ export class UserRepository extends Repository<User> {
     user.password = await this.hashPassword(password, user.salt);
     user.confirmToken = uuidv4();
     user.isconfirm = false;
+    user.isBanned = false;
     user.customerId = customer.id;
 
     const isEmailExist = await this.findOne({ email: user.email });
