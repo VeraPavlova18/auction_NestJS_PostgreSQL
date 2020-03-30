@@ -103,7 +103,7 @@ export class LotsService {
     } = updateLotDto;
     const lot = await this.getLotById(id, user);
 
-    if (lot.status !== 'PENDING') {
+    if (lot.status !== LotStatus.PENDING) {
       this.myLogger.verbose(`User "${user.email}" can't change lot with status not equals pending.`);
       throw new NotAcceptableException('Can\'t change lot with status not equals pending.');
     }
@@ -126,7 +126,24 @@ export class LotsService {
   }
 
   async getLotPayment(id: number, user: User): Promise<any> {
+    const lot = await this.getLotById(id, user);
+
+    if (lot.status !== LotStatus.CLOSED || lot.isPayment) {
+      this.myLogger.verbose(`lot already paid or not closed`);
+      throw new NotAcceptableException('lot already paid or not closed');
+    }
+
     const price = await this.dbqueries.getMaxBidPrice(id);
     return this.paymentService.paymentIntent(price, user);
+  }
+
+  async getSuccessPayment(id: number, user: User): Promise<any> {
+    const lot = await this.getLotById(id, user);
+    lot.isPayment = true;
+    try {
+      await lot.save();
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
   }
 }

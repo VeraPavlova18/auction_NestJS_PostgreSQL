@@ -28,6 +28,7 @@ export class LotRepository extends Repository<Lot> {
     lot.status = LotStatus.PENDING;
     lot.createdAt = moment.utc().toDate();
     lot.user = user;
+    lot.isPayment = false;
     lot.image = img ? img.path.split('/').slice(1).join('/') : '';
 
     try {

@@ -28,9 +28,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { editFileName, imageFileFilter } from '../utils/img-uploading.utils';
 import { UpdateLotDto } from './dto/update-lot.dto copy';
 import { MyLogger } from '../logger/my-logger.service';
-import Stripe from 'stripe';
 
 @Controller('lots')
+@UseGuards(AuthGuard('jwt'))
 @UseInterceptors(ClassSerializerInterceptor)
 export class LotsController {
   constructor(
@@ -41,7 +41,6 @@ export class LotsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard('jwt'))
   @UsePipes(ValidationPipe)
   @UseInterceptors(
     FileInterceptor('img', {
@@ -61,7 +60,6 @@ export class LotsController {
   }
 
   @Get('/my')
-  @UseGuards(AuthGuard('jwt'))
   getMyLots(
     @Query(ValidationPipe) filterDto: GetMyLotsFilterDto,
     @GetUser() user: User,
@@ -75,7 +73,6 @@ export class LotsController {
   }
 
   @Get()
-  @UseGuards(AuthGuard('jwt'))
   getLots(
     @Query(ValidationPipe) filterDto: GetLotsFilterDto,
     @GetUser() user: User,
@@ -89,7 +86,6 @@ export class LotsController {
   }
 
   @Get('/:id')
-  @UseGuards(AuthGuard('jwt'))
   getLotById(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
@@ -98,7 +94,6 @@ export class LotsController {
   }
 
   @Get('/:id/payment')
-  @UseGuards(AuthGuard('jwt'))
   async payLotById(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
@@ -109,21 +104,19 @@ export class LotsController {
   @Get('/:id/payment/success')
   async success(
     @Param('id', ParseIntPipe) id: number,
-    @Query() query: any,
+    @GetUser() user: User,
   ): Promise<string> {
     this.myLogger.verbose(`User payment was successful for the lot with id: ${id}`);
-    return 'Your payment was successful';
+    return this.lotsService.getSuccessPayment(id, user);
   }
 
   @Get('/:id/payment/cancel')
-  sancel(@Param('id', ParseIntPipe) id: number): string {
+  sancel(@Param('id', ParseIntPipe) id: number): void {
     this.myLogger.verbose(`User have canceled payment for the lot with identifier: ${id}`,
     );
-    return 'You have canceled payment';
   }
 
   @Delete('/:id')
-  @UseGuards(AuthGuard('jwt'))
   deleteLotById(
     @Param('id', ParseIntPipe) id: number,
     @GetUser() user: User,
@@ -132,7 +125,6 @@ export class LotsController {
   }
 
   @Patch(':id/edit')
-  @UseGuards(AuthGuard('jwt'))
   @UsePipes(ValidationPipe)
   updateLot(
     @Param('id', ParseIntPipe) id: number,

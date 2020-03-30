@@ -49,6 +49,12 @@ export class Lot extends BaseEntity {
   @Column()
   status: LotStatus;
 
+  @Exclude({ toPlainOnly: true })
+  @Column({
+    nullable: true,
+  })
+  isPayment: boolean;
+
   @ManyToOne(
     type => User,
     user => user.lots,
