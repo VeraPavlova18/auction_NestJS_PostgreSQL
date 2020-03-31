@@ -1,5 +1,5 @@
 import { EntityRepository, Repository, getConnection } from 'typeorm';
-import { InternalServerErrorException, NotAcceptableException } from '@nestjs/common';
+import { InternalServerErrorException, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';

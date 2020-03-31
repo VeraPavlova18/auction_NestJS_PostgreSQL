@@ -34,7 +34,7 @@ export class SendEmailService {
       to: email,
       from: 'mailer.test000111@gmail.com',
       subject: `You are a winner of bids for ${lotTitle}`,
-      text: `${name}, you are a winner of bids for ${lotTitle} with current price of ${price}. You can create a order by follow this link: ${link}`,
+      text: `${name}, you are a winner of bids for ${lotTitle} with current price of ${price}. You need make payment by the link: ${link}`,
     });
   }
 

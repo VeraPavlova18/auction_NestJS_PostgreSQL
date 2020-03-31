@@ -4,6 +4,7 @@ import { DBqueries } from '../db.queries';
 import { MyLogger } from '../logger/my-logger.service';
 import { LotStatus } from './lot-status.enum';
 import { Job } from 'bull';
+import { LotsService } from './lots.service';
 
 @Processor('lots')
 export class LotsProcessor {
@@ -11,6 +12,7 @@ export class LotsProcessor {
     private sendEmailService: SendEmailService,
     private dbqueries: DBqueries,
     private readonly myLogger: MyLogger,
+    private lotsService: LotsService,
   ) { this.myLogger.setContext(LotsProcessor.name); }
 
   @Process('startLot')
@@ -18,6 +20,13 @@ export class LotsProcessor {
     const { lotId } = job.data;
     await this.dbqueries.changeLotsStatus(LotStatus.IN_PROCESS, `lot.id = :id AND status = 'PENDING'`, { id: lotId });
     this.myLogger.debug(`Start lot with id: ${lotId}`);
+  }
+
+  @Process('isTheLotPayed')
+  async isTheLotPayed(job: Job<any>) {
+    const { lotId } = job.data;
+    // all delete work here if lot is not paid
+    this.myLogger.debug(`new job test ${lotId}`);
   }
 
   @Process('closeLot')
@@ -37,8 +46,9 @@ export class LotsProcessor {
         ownerOfMaxBid.firstName,
         lot.title,
         maxBid,
-        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/lots/${lotId}/payment`,
       );
+      this.lotsService.addPaymentsJobs(lot);
     }
 
     this.sendEmailService.sendEmailToTheLotOwner(

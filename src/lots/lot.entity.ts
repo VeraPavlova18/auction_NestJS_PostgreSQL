@@ -9,7 +9,7 @@ import {
 import { LotStatus } from './lot-status.enum';
 import { User } from '../auth/user.entity';
 import { Bid } from '../bids/bid.entity';
-import { Expose, Exclude } from 'class-transformer';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class Lot extends BaseEntity {

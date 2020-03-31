@@ -35,6 +35,14 @@ export class LotsService {
     await this.queue.add('closeLot', {lotId: lot.id}, { delay: timeToClose, jobId: `closeLot${lot.id}` });
   }
 
+  async addPaymentsJobs(lot: Lot): Promise<void> {
+    const now = moment.utc();
+    const endTime = moment.utc(+now + 3000);
+    // 3h = 10800000 ms
+    const timeToStart = endTime.diff(now, 'milliseconds');
+    await this.queue.add('isTheLotPayed', {lotId: lot.id}, { delay: timeToStart });
+  }
+
   async removeLotJobs(lot: Lot): Promise<void> {
     const jobToStart: Job = await this.queue.getJob(`startLot${lot.id}`);
     const jobToEnd: Job = await this.queue.getJob(`closeLot${lot.id}`);

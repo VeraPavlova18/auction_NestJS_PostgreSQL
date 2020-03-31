@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException, NotAcceptableException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { User } from '../auth/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,6 +30,11 @@ export class OrdersService {
       throw new NotAcceptableException('can\'t create order for lot with status not equals CLOSED');
     }
 
+    if (lot.isPayment !== true) {
+      this.myLogger.verbose(`User "${user.email}" can't create order for unpaid lot`);
+      throw new NotAcceptableException('can\'t create order for unpaid lot');
+    }
+
     const owner = await this.dbqueries.getLotOwner(lot);
     const order = await this.orderRepository.createOrder(user, createOrderDto, id);
 
@@ -51,7 +56,9 @@ export class OrdersService {
     if (user.id !== owner.id && user.id !== maxBid.userId) {
       throw new BadRequestException({ status: 400, error: `Failed to get order by user ${user.email}.` });
     }
-    return await this.orderRepository.getOrderByLotId(id);
+    const order = await this.orderRepository.getOrderByLotId(id);
+    if (!order) { throw new NotFoundException(`Order for lot with ID "${id}" not found`); }
+    return order;
   }
 
   async updateOrder(id: number, updateOrderDto: UpdateOrderDto, user: User) {
