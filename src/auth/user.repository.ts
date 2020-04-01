@@ -26,7 +26,7 @@ export class UserRepository extends Repository<User> {
     user.password = await this.hashPassword(password, user.salt);
     user.confirmToken = uuidv4();
     user.isconfirm = false;
-    user.isBanned = false;
+    user.ban = false;
     user.customerId = customer.id;
 
     const isEmailExist = await this.findOne({ email: user.email });

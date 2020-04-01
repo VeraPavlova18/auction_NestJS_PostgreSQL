@@ -53,6 +53,60 @@ export class SendEmailService {
     });
   }
 
+  public sendEmailToTheBidsWinnerAfterSuccessPayment(
+    email,
+    name,
+    lotTitle,
+    link = '#',
+  ): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `${name} your payment was successful for the lot ${lotTitle}`,
+      text: `${name}, your payment was successful for the lot ${lotTitle}. You can create delivery order by follow this link: ${link}`,
+    });
+  }
+
+  public sendEmailToTheLotOwnerAfterSuccessPayment(
+    email,
+    name,
+    lotTitle,
+    link = '#',
+  ): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `The lot ${lotTitle} was paid successful`,
+      text: `${name}, your lot ${lotTitle} was paid successful. You can find the details by follow this link: ${link}`,
+    });
+  }
+
+  public sendEmailToTheBidsWinnerAfterLotIsNotPaid(
+    email,
+    name,
+    lotTitle,
+  ): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `${name} you didn't pay for lot ${lotTitle} and your access is denied`,
+      text: `${name}, you didn't pay for lot ${lotTitle} and your access is denied`,
+    });
+  }
+
+  public sendEmailToTheLotOwnerAfterAfterLotIsNotPaid(
+    email,
+    name,
+    lotTitle,
+  ): void {
+    this.mailerService.sendMail({
+      to: email,
+      from: 'mailer.test000111@gmail.com',
+      subject: `The lot ${lotTitle} was not paid`,
+      text: `${name}, your lot ${lotTitle} was not paid. You can update it and start again.`,
+    });
+  }
+
   public sendOrderToTheLotOwner(email, name, lotTitle, link = '#'): void {
     this.mailerService.sendMail({
       to: email,

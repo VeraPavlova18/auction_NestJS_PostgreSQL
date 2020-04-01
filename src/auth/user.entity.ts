@@ -55,7 +55,7 @@ export class User extends BaseEntity {
   @Column({
     nullable: true,
   })
-  isBanned: boolean;
+  ban: boolean;
 
   @Exclude({ toPlainOnly: true })
   @Column({

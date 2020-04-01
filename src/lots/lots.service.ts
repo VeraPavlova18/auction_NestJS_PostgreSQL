@@ -37,7 +37,7 @@ export class LotsService {
 
   async addPaymentsJobs(lot: Lot): Promise<void> {
     const now = moment.utc();
-    const endTime = moment.utc(+now + 3000);
+    const endTime = moment.utc(+now + 6000);
     // 3h = 10800000 ms
     const timeToStart = endTime.diff(now, 'milliseconds');
     await this.queue.add('isTheLotPayed', {lotId: lot.id}, { delay: timeToStart });

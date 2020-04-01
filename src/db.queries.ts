@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { getConnection } from 'typeorm';
+import { getConnection, DeleteResult, UpdateResult } from 'typeorm';
 import { Lot } from './lots/lot.entity';
 import { User } from './auth/user.entity';
 import { Bid } from './bids/bid.entity';
@@ -83,6 +83,24 @@ export class DBqueries {
       .update(Lot)
       .set({ status: lotStatus })
       .where(condition, params)
+      .execute();
+  }
+
+  async banUser(condition: string, params: object): Promise<void> {
+    await getConnection()
+      .createQueryBuilder()
+      .update(User)
+      .set({ ban: true })
+      .where(condition, params)
+      .execute();
+  }
+
+  async deleteBids(id: number): Promise<void> {
+    await getConnection()
+      .createQueryBuilder()
+      .delete()
+      .from(Bid)
+      .where('lotId = :lotId', { lotId: id })
       .execute();
   }
 
