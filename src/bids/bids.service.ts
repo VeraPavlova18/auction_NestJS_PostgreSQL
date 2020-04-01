@@ -9,19 +9,31 @@ import { CreateBidDto } from './dto/create-bid.dto';
 import { SendEmailService } from '../mail/sendEmailService';
 import { DBqueries } from '../db.queries';
 import { MyLogger } from '../logger/my-logger.service';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
+import { Lot } from 'src/lots/lot.entity';
+import * as moment from 'moment';
 
 @Injectable()
 export class BidsService {
 
   constructor(
-    @InjectRepository(BidRepository)
-    private bidRepository: BidRepository,
+    @InjectRepository(BidRepository) private bidRepository: BidRepository,
+    @InjectQueue('bids') private readonly queue: Queue,
     private sendEmailService: SendEmailService,
     private dbqueries: DBqueries,
     private gateway: AppGateway,
     private readonly myLogger: MyLogger,
   ) {
     this.myLogger.setContext('BidsService');
+  }
+
+  async addPaymentsJobs(lot: Lot): Promise<void> {
+    const now = moment.utc();
+    const endTime = moment.utc(+now + 6000);
+    // 3h = 10800000 ms
+    const timeToStart = endTime.diff(now, 'milliseconds');
+    await this.queue.add('isTheLotPayed', {lotId: lot.id}, { delay: timeToStart });
   }
 
   async createBid(user: User, createBidDto: CreateBidDto, id: number): Promise<Bid> {
@@ -49,6 +61,7 @@ export class BidsService {
         maxBid || lot.curentPrice,
         `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/lots/${lot.id}`,
       );
+      await this.addPaymentsJobs(lot);
     }
     this.myLogger.debug(`Created new bid for lot with id:${id}`);
     return bid;

@@ -14,6 +14,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { Queue, Job } from 'bull';
 import * as moment from 'moment';
 import { PaymentService } from '../payment/paymentService';
+import { SendEmailService } from 'src/mail/sendEmailService';
 
 @Injectable()
 export class LotsService {
@@ -23,6 +24,7 @@ export class LotsService {
     private dbqueries: DBqueries,
     private paymentService: PaymentService,
     private readonly myLogger: MyLogger,
+    private sendEmailService: SendEmailService,
   ) { this.myLogger.setContext('LotsService'); }
 
   async addLotJobs(lot: Lot): Promise<void> {
@@ -147,9 +149,24 @@ export class LotsService {
 
   async getSuccessPayment(id: number, user: User): Promise<any> {
     const lot = await this.getLotById(id, user);
+    const owner = await this.dbqueries.getLotOwner(lot);
+    const maxBid = await this.dbqueries.getMaxBidPrice(lot.id);
+    const ownerOfMaxBid = await this.dbqueries.getOwnerOfMaxBidOfLot(maxBid);
     lot.isPayment = true;
     try {
       await lot.save();
+      this.sendEmailService.sendEmailToTheBidsWinnerAfterSuccessPayment(
+        ownerOfMaxBid.email,
+        ownerOfMaxBid.firstName,
+        lot.title,
+        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+      );
+      this.sendEmailService.sendEmailToTheLotOwnerAfterSuccessPayment(
+        owner.email,
+        owner.firstName,
+        lot.title,
+        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+      );
     } catch (error) {
       throw new InternalServerErrorException();
     }
