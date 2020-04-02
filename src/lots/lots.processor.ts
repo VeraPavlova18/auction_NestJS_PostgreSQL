@@ -60,31 +60,34 @@ export class LotsProcessor {
   @Process('closeLot')
   async closeLot(job: Job<any>) {
     const { lotId } = job.data;
-    await this.dbqueries.changeLotsStatus(LotStatus.CLOSED, `id = :id AND status != 'CLOSED'`, { id: lotId });
-    this.myLogger.debug(`End lot with id: ${lotId}`);
-
     const lot = await this.dbqueries.getLot(lotId);
-    const owner = await this.dbqueries.getLotOwner(lot);
-    const maxBid = await this.dbqueries.getMaxBidPrice(lotId);
 
-    if (maxBid) {
-      const ownerOfMaxBid = await this.dbqueries.getOwnerOfMaxBidOfLot(maxBid);
-      this.sendEmailService.sendEmailToTheBidsWinner(
-        ownerOfMaxBid.email,
-        ownerOfMaxBid.firstName,
+    if (lot.status === LotStatus.IN_PROCESS) {
+      await this.dbqueries.changeLotsStatus(LotStatus.CLOSED, `id = :id AND status != 'CLOSED'`, { id: lotId });
+      this.myLogger.debug(`End lot with id: ${lotId}`);
+
+      const owner = await this.dbqueries.getLotOwner(lot);
+      const maxBid = await this.dbqueries.getMaxBidPrice(lotId);
+
+      if (maxBid) {
+        const ownerOfMaxBid = await this.dbqueries.getOwnerOfMaxBidOfLot(maxBid);
+        this.sendEmailService.sendEmailToTheBidsWinner(
+          ownerOfMaxBid.email,
+          ownerOfMaxBid.firstName,
+          lot.title,
+          maxBid,
+          `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/lots/${lotId}/payment`,
+        );
+        this.lotsService.addPaymentsJobs(lot);
+      }
+
+      this.sendEmailService.sendEmailToTheLotOwner(
+        owner.email,
+        owner.firstName,
         lot.title,
-        maxBid,
-        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/lots/${lotId}/payment`,
+        maxBid || lot.curentPrice,
+        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
       );
-      this.lotsService.addPaymentsJobs(lot);
     }
-
-    this.sendEmailService.sendEmailToTheLotOwner(
-      owner.email,
-      owner.firstName,
-      lot.title,
-      maxBid || lot.curentPrice,
-      `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-    );
   }
 }

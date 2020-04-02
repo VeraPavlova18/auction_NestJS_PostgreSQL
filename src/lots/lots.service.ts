@@ -147,27 +147,33 @@ export class LotsService {
     return this.paymentService.paymentIntent(price, user);
   }
 
-  async getSuccessPayment(id: number, user: User): Promise<any> {
+  async getSuccessPayment(id: number, user: User, pi: any): Promise<any> {
     const lot = await this.getLotById(id, user);
     const owner = await this.dbqueries.getLotOwner(lot);
     const maxBid = await this.dbqueries.getMaxBidPrice(lot.id);
     const ownerOfMaxBid = await this.dbqueries.getOwnerOfMaxBidOfLot(maxBid);
-    lot.isPayment = true;
-    try {
-      await lot.save();
-      this.sendEmailService.sendEmailToTheBidsWinnerAfterSuccessPayment(
-        ownerOfMaxBid.email,
-        ownerOfMaxBid.firstName,
-        lot.title,
-        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-      );
-      this.sendEmailService.sendEmailToTheLotOwnerAfterSuccessPayment(
-        owner.email,
-        owner.firstName,
-        lot.title,
-        `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
-      );
-    } catch (error) {
+    const isPaymentSucces = await this.paymentService.isPaymentSucces(pi);
+    if (isPaymentSucces) {
+      this.myLogger.verbose(`User payment was successful for the lot with id: ${id}`);
+      lot.isPayment = true;
+      try {
+        await lot.save();
+        this.sendEmailService.sendEmailToTheBidsWinnerAfterSuccessPayment(
+          ownerOfMaxBid.email,
+          ownerOfMaxBid.firstName,
+          lot.title,
+          `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+        );
+        this.sendEmailService.sendEmailToTheLotOwnerAfterSuccessPayment(
+          owner.email,
+          owner.firstName,
+          lot.title,
+          `${process.env.PROTOCOL}://${process.env.HOST}:${process.env.PORT}/`,
+        );
+      } catch (error) {
+        throw new InternalServerErrorException();
+      }
+    } else {
       throw new InternalServerErrorException();
     }
   }

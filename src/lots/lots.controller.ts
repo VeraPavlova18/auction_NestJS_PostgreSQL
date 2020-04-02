@@ -104,10 +104,10 @@ export class LotsController {
   @Get('/:id/payment/success')
   async success(
     @Param('id', ParseIntPipe) id: number,
+    @Query() pi: any,
     @GetUser() user: User,
   ): Promise<string> {
-    this.myLogger.verbose(`User payment was successful for the lot with id: ${id}`);
-    return this.lotsService.getSuccessPayment(id, user);
+    return this.lotsService.getSuccessPayment(id, user, pi);
   }
 
   @Get('/:id/payment/cancel')

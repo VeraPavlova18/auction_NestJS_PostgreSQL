@@ -50,7 +50,7 @@ async function getPay() {
     } else {
       if (confirmPayment.paymentIntent.status === 'succeeded') {
         console.log('Success')  
-        await fetch(`http://localhost:3000/lots/${lotId}/payment/success`, { headers: { Authorization: BearerToken } });
+        await fetch(`http://localhost:3000/lots/${lotId}/payment/success?cp=${confirmPayment.paymentIntent.id}`, { headers: { Authorization: BearerToken } });
       }
     }    
   });
